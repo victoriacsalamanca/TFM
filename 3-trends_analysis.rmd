@@ -1,0 +1,564 @@
+---
+title: "Draft TFM"
+author: "Victoria Costas"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r global_options, include=T, echo = F}
+knitr::opts_chunk$set(echo = T, warning=FALSE, message=FALSE)
+```
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+# Trends analysis 
+
+This simple trend analysis document is only a support for the final dashboard, this means that the graphs here will be included in the final dashboard but they are included in this document in order to have them collected, commented and analysed. 
+
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+```
+
+## Read the data
+
+```{r}
+spain_trends <- read_csv("./data/spain_trends.csv")
+germany_trends <- read_csv("./data/germany_trends.csv")
+
+#remove the first row for clarity
+spain_trends <- spain_trends[, -1]
+germany_trends <- germany_trends[, -1]
+```
+
+
+## Normalize the data
+
+```{r}
+trends <- rbind(spain_trends, germany_trends)
+
+# Scale the "value" column in the "trends" dataset
+trends_scaled <- trends 
+trends_scaled$value <- scale(trends$value)
+
+# View the scaled dataset
+head(trends_scaled)
+```
+
+
+Once scaled the data, we will compute the average for each goal.
+
+```{r}
+#compute the average for each goal each year
+average_by_goal_year <- trends_scaled %>%
+  group_by(indicator, year, geo_time) %>%
+  summarise(Average_Value = mean(value, na.rm = TRUE))
+
+head(average_by_goal_year)
+```
+
+
+## Trends analysis
+
+### Simple analysis
+
+We will merge the data in order to perform the analysis
+
+```{r}
+#data for the year 2010 onwards
+data <- average_by_goal_year %>% filter(year >= 2010)
+```
+
+
+```{r}
+# Create line plots for each goal
+plot1 <- data %>% filter(indicator == "ind1") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 1", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10)) +
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot2 <- data %>% filter(indicator == "ind2") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 2", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot3 <- data %>% filter(indicator == "ind3") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 3", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot4 <- data %>% filter(indicator == "ind4") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 4", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot5 <- data %>% filter(indicator == "ind5") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 5", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot6 <- data %>% filter(indicator == "ind6") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 6", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot7 <- data %>% filter(indicator == "ind7") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 7", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot8 <- data %>% filter(indicator == "ind8") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 8", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot9 <- data %>% filter(indicator == "ind9") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 9", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot10 <- data %>% filter(indicator == "ind10") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 10", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot11 <- data %>% filter(indicator == "ind11") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 11", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot12 <- data %>% filter(indicator == "ind12") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 12", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot13 <- data %>% filter(indicator == "ind13") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 13", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot14 <- data %>% filter(indicator == "ind14") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 14", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot15 <- data %>% filter(indicator == "ind15") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 15", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot16 <- data %>% filter(indicator == "ind16") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 16", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plot17 <- data %>% filter(indicator == "ind17") %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = "Progress of Goal 17", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        legend.position = "none")+
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+
+plots1_4 <- plot1 + plot2 + plot3 + plot4
+plots5_8 <- plot5 + plot6 + plot7 + plot8
+plots9_12 <- plot9 + plot10 + plot11 + plot12
+plots13_16 <- plot13 + plot14 + plot15 + plot16
+
+plots1_4
+plots5_8
+plots9_12
+plots13_16
+plot17
+```
+
+
+```{r}
+# summary_stats <- average_by_goal_year %>%
+#   group_by(indicator, geo_time) %>%
+#   summarise(Average_Value = mean(Average_Value, na.rm = TRUE, Median_Value = median(Average_Value, na.rm = TRUE)))
+# 
+# print(summary_stats)
+
+summary_stats_2010 <- data %>%
+  group_by(indicator, geo_time) %>%
+  summarise(Average_Value = mean(Average_Value, na.rm = TRUE, Median_Value = median(Average_Value, na.rm = TRUE)))
+
+print(summary_stats_2010)
+
+plot <- summary_stats_2010 %>%
+  ggplot(aes(x = reorder(indicator, -Average_Value), y = Average_Value, fill = geo_time)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Summary Statistics from 2010 to 2021",
+       x = "Indicator",
+       y = "Average Value",
+       fill = "Country") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+
+# Display the plot
+plot
+```
+
+
+```{r}
+growth <- data %>%
+  arrange(indicator, geo_time, year) %>%
+  group_by(indicator, geo_time) %>%
+  filter(complete.cases(Average_Value)) %>%
+  mutate(Growth_Rate = (Average_Value - lag(Average_Value)) / lag(Average_Value) * 100)
+
+print(growth)
+
+#########Problems with scaling 
+
+growth_plot_es <- growth_2010 %>% filter(geo_time == "ES") %>% 
+  ggplot(aes(x = year, y = Growth_Rate, color = indicator, group = interaction(indicator, geo_time))) +
+  geom_line() +
+  geom_smooth(se = FALSE) +
+  labs(title = "Growth Rate by Indicator and Year",
+       x = "Year",
+       y = "Growth Rate",
+       color = "Indicator") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10))
+
+growth_plot_es
+
+###################trying different things
+growth_plot_es <- growth_2010 %>% filter(geo_time == "ES") %>% 
+  ggplot(aes(x = year, y = Growth_Rate, group = interaction(indicator, geo_time))) +
+  geom_line(color = "grey") +
+  geom_smooth(se = FALSE, color = "grey") +
+  geom_line(aes(color = indicator, linewidth = ifelse(indicator == "ind11", 1, 0.5)), alpha = 0.5) +
+  geom_smooth(aes(color = indicator, linewidth = ifelse(indicator == "ind11", 1, 0.5)), se = FALSE, alpha = 0.5) +
+  labs(title = "Growth Rate by Indicator and Year",
+       x = "Year",
+       y = "Growth Rate",
+       color = "Indicator") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10)) +
+  scale_color_manual(values = c("grey", "grey", "red", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey")) +
+  scale_size_identity()
+
+growth_plot_es <- growth %>% filter(geo_time == "ES") %>% 
+  ggplot(aes(x = year, y = Growth_Rate, group = interaction(indicator, geo_time))) +
+  geom_line(color = "grey") +
+  geom_smooth(se = FALSE, color = "grey") +
+  geom_line(data = . %>% filter(indicator == "ind1"),
+            aes(color = indicator), size = 1, alpha = 0.5) +
+  geom_smooth(data = . %>% filter(indicator == "ind1"),
+              aes(color = indicator), se = FALSE, size = 1, alpha = 0.5) +
+  labs(title = "Growth Rate by Indicator and Year",
+       x = "Year",
+       y = "Growth Rate",
+       color = "Indicator") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10)) +
+  scale_color_manual(values = c("red", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey")) +
+  scale_size_identity()
+
+
+#############Germany
+
+growth_plot_de <- growth_2010 %>% filter(geo_time == "DE") %>% 
+  ggplot(aes(x = year, y = Growth_Rate, color = indicator, group = interaction(indicator, geo_time))) +
+  geom_line() +
+  geom_smooth(se = FALSE) +
+  labs(title = "Growth Rate by Indicator",
+       x = "Year",
+       y = "Growth Rate",
+       color = "Indicator") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10))
+
+growth_plot_de
+
+
+```
+
+
+
+```{r}
+overall_stats_es <- data %>% filter(geo_time== "ES") %>% 
+  group_by(indicator, year) %>%
+  summarise(Average_Value = Average_Value, Max_Value = max(Average_Value, na.rm = T), Min_Value = min(Average_Value, na.rm = T))
+
+print(overall_stats_es)
+
+overall_stats_de <- data %>% filter(geo_time == "DE") %>% 
+  group_by(indicator, year) %>%
+  summarise(Average_Value = Average_Value, Max_Value = max(Average_Value, na.rm = T), Min_Value = min(Average_Value, na.rm = T))
+
+print(overall_stats_de)
+```
+
+
+```{r}
+# Combine overall_stats_es and overall_stats_de into a single data frame
+overall_stats_combined <- rbind(overall_stats_es, overall_stats_de)
+
+# Create bar plot
+bar_plot <- ggplot(overall_stats_combined, aes(x = year, y = Average_Value, fill = indicator)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Overall Statistics: Spain vs Germany", x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(legend.position = "top")
+
+# Display the plot
+bar_plot
+
+
+###########FOR SPAIN
+# Get unique years
+unique_years <- unique(overall_stats_es$year)
+
+# Create bar plots for each year
+bar_plots <- lapply(unique_years, function(year) {
+  data_year <- overall_stats_es[overall_stats_es$year == year, ]
+  
+  # Determine fill colors based on positive/negative values
+  data_year$fill_color <- ifelse(data_year$Average_Value >= 0, "Positive", "Negative")
+  
+  ggplot(data_year, aes(x = indicator, y = Average_Value, fill = fill_color)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Overall Statistics:", year), x = "Indicator", y = "Average Value") +
+    scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "#FF6666")) +  # Set fill colors
+    theme_minimal() +
+    theme(legend.position = "none") +
+    coord_flip()
+})
+
+# Display the bar plots one by one
+for (i in seq_along(bar_plots)) {
+  print(bar_plots[[i]])
+}
+
+###########FOR GERMANY
+# Get unique years
+unique_years <- unique(overall_stats_de$year)
+
+# Create bar plots for each year
+bar_plots <- lapply(unique_years, function(year) {
+  data_year <- overall_stats_de[overall_stats_de$year == year, ]
+  
+  # Determine fill colors based on positive/negative values
+  data_year$fill_color <- ifelse(data_year$Average_Value >= 0, "Positive", "Negative")
+  
+  ggplot(data_year, aes(x = indicator, y = Average_Value, fill = fill_color)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Overall Statistics:", year), x = "Indicator", y = "Average Value") +
+    scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "#FF6666")) +  # Set fill colors
+    theme_minimal() +
+    theme(legend.position = "none") +
+    coord_flip()
+})
+
+# Display the bar plots one by one
+for (i in seq_along(bar_plots)) {
+  print(bar_plots[[i]])
+}
+
+########## FOR BOTH
+# Get unique years
+unique_years <- unique(overall_stats_combined$year)
+
+# Create bar plots for each year
+bar_plots <- lapply(unique_years, function(year) {
+  data_year <- overall_stats_combined[overall_stats_combined$year == year, ]
+  
+  # Determine fill colors based on positive/negative values
+  data_year$fill_color <- ifelse(data_year$Average_Value >= 0, "Positive", "Negative")
+  
+  ggplot(data_year, aes(x = indicator, y = Average_Value, fill = fill_color)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Overall Statistics:", year), x = "Indicator", y = "Average Value") +
+    scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "#FF6666")) +  # Set fill colors
+    theme_minimal() +
+    theme(legend.position = "none") +
+    coord_flip()
+})
+
+# Display the bar plots one by one
+for (i in seq_along(bar_plots)) {
+  print(bar_plots[[i]])
+}
+
+```
+
+

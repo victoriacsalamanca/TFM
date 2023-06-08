@@ -1,0 +1,385 @@
+---
+title: "Draft TFM"
+author: "Victoria Costas"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r global_options, include=T, echo = F}
+knitr::opts_chunk$set(echo = T, warning=FALSE, message=FALSE)
+```
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+# Preprocessing for clustering
+
+Since the databases are not ready for analysis, certain changes will be made in order to have a database ready for the analysis we want to perform.
+
+First of all, the geotime column will be changed to geo-time so that there are no problems with special characters, and as this column is the one that contains the information on the countries (which is the one we will use), all the databases that do not contain it will be eliminated. Once this is done we will change ":" to NAs since eurostat uses ":" to indicate missing values, Eurostat also uses other characters to mark circumstances such as time jumps in values etc. and these characters will also be removed. In addition, columns that are not needed for the analysis and years before 2000 (due to lack of information) will be removed. Finally, we will keep the rows for Spain and Germany, create two new databases for these two countries and make some final changes like converting to numerical or reordering the columns. 
+
+--------MISSING: origin of the databases, etc.-------------
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(dplyr)
+library(mice)
+```
+
+## Read the data
+
+Data collected on the 3rd of March 2023.
+
+```{r}
+sdg_01.sdg_01_10 <- read_delim("data/sdg_01/sdg_01_10.tsv", delim = ",")
+sdg_01.sdg_01_10a <- read_delim("data/sdg_01/sdg_01_10a.tsv", delim = ",")
+sdg_01.sdg_01_20 <- read_delim("data/sdg_01/sdg_01_20.tsv", delim = ",")
+sdg_01.sdg_01_20a <- read_delim("data/sdg_01/sdg_01_20a.tsv", delim = ",")
+sdg_01.sdg_01_31 <- read_delim("data/sdg_01/sdg_01_31.tsv", delim = ",")
+sdg_01.sdg_01_40 <- read_delim("data/sdg_01/sdg_01_40.tsv", delim = ",")
+sdg_01.sdg_01_41 <- read_delim("data/sdg_01/sdg_01_41.tsv", delim = ",")
+sdg_01.sdg_01_50 <- read_delim("data/sdg_01/sdg_01_50.tsv", delim = ",")
+sdg_01.sdg_03_60 <- read_delim("data/sdg_01/sdg_03_60.tsv", delim = ",")
+sdg_01.sdg_11_11 <- read_delim("data/sdg_01/sdg_11_11.tsv", delim = ",")
+sdg_02.sdg_02_10 <- read_delim("data/sdg_02/sdg_02_10.tsv", delim = ",")
+sdg_02.sdg_02_20 <- read_delim("data/sdg_02/sdg_02_20.tsv", delim = ",")
+sdg_02.sdg_02_30 <- read_delim("data/sdg_02/sdg_02_30.tsv", delim = ",")
+sdg_02.sdg_02_40 <- read_delim("data/sdg_02/sdg_02_40.tsv", delim = ",")
+sdg_02.sdg_02_52 <- read_delim("data/sdg_02/sdg_02_52.tsv", delim = ",")
+sdg_02.sdg_02_60 <- read_delim("data/sdg_02/sdg_02_60.tsv", delim = ",")
+sdg_02.sdg_06_40 <- read_delim("data/sdg_02/sdg_06_40.tsv", delim = ",")
+sdg_02.sdg_15_50 <- read_delim("data/sdg_02/sdg_15_50.tsv", delim = ",")
+sdg_02.sdg_15_60 <- read_delim("data/sdg_02/sdg_15_60.tsv", delim = ",")
+sdg_03.sdg_02_10 <- read_delim("data/sdg_03/sdg_02_10.tsv", delim = ",")
+sdg_03.sdg_03_11 <- read_delim("data/sdg_03/sdg_03_11.tsv", delim = ",")
+sdg_03.sdg_03_20 <- read_delim("data/sdg_03/sdg_03_20.tsv", delim = ",")
+sdg_03.sdg_03_30 <- read_delim("data/sdg_03/sdg_03_30.tsv", delim = ",")
+sdg_03.sdg_03_41 <- read_delim("data/sdg_03/sdg_03_41.tsv", delim = ",")
+sdg_03.sdg_03_42 <- read_delim("data/sdg_03/sdg_03_42.tsv", delim = ",")
+sdg_03.sdg_03_60 <- read_delim("data/sdg_03/sdg_03_60.tsv", delim = ",")
+sdg_03.sdg_08_60 <- read_delim("data/sdg_03/sdg_08_60.tsv", delim = ",")
+sdg_03.sdg_11_20 <- read_delim("data/sdg_03/sdg_11_20.tsv", delim = ",")
+sdg_03.sdg_11_40 <- read_delim("data/sdg_03/sdg_11_40.tsv", delim = ",")
+sdg_03.sdg_11_51 <- read_delim("data/sdg_03/sdg_11_51.tsv", delim = ",")
+sdg_04.sdg_04_10 <- read_delim("data/sdg_04/sdg_04_10.tsv", delim = ",")
+sdg_04.sdg_04_10a <- read_delim("data/sdg_04/sdg_04_10a.tsv", delim = ",")
+sdg_04.sdg_04_20 <- read_delim("data/sdg_04/sdg_04_20.tsv", delim = ",")
+sdg_04.sdg_04_31 <- read_delim("data/sdg_04/sdg_04_31.tsv", delim = ",")
+sdg_04.sdg_04_40 <- read_delim("data/sdg_04/sdg_04_40.tsv", delim = ",")
+sdg_04.sdg_04_60 <- read_delim("data/sdg_04/sdg_04_60.tsv", delim = ",")
+sdg_04.sdg_04_70 <- read_delim("data/sdg_04/sdg_04_70.tsv", delim = ",")
+sdg_05.sdg_04_10 <- read_delim("data/sdg_05/sdg_04_10.tsv", delim = ",")
+sdg_05.sdg_04_20 <- read_delim("data/sdg_05/sdg_04_20.tsv", delim = ",")
+sdg_05.sdg_05_10 <- read_delim("data/sdg_05/sdg_05_10.tsv", delim = ",")
+sdg_05.sdg_05_20 <- read_delim("data/sdg_05/sdg_05_20.tsv", delim = ",")
+sdg_05.sdg_05_30 <- read_delim("data/sdg_05/sdg_05_30.tsv", delim = ",")
+sdg_05.sdg_05_40 <- read_delim("data/sdg_05/sdg_05_40.tsv", delim = ",")
+sdg_05.sdg_05_50 <- read_delim("data/sdg_05/sdg_05_50.tsv", delim = ",")
+sdg_05.sdg_05_60 <- read_delim("data/sdg_05/sdg_05_60.tsv", delim = ",")
+sdg_06.sdg_06_10 <- read_delim("data/sdg_06/sdg_06_10.tsv", delim = ",")
+sdg_06.sdg_06_20 <- read_delim("data/sdg_06/sdg_06_20.tsv", delim = ",")
+sdg_06.sdg_06_30 <- read_delim("data/sdg_06/sdg_06_30.tsv", delim = ",")
+sdg_06.sdg_06_40 <- read_delim("data/sdg_06/sdg_06_40.tsv", delim = ",")
+sdg_06.sdg_06_50 <- read_delim("data/sdg_06/sdg_06_50.tsv", delim = ",")
+sdg_06.sdg_06_60 <- read_delim("data/sdg_06/sdg_06_60.tsv", delim = ",")
+sdg_06.sdg_14_40 <- read_delim("data/sdg_06/sdg_14_40.tsv", delim = ",")
+sdg_07.sdg_07_10 <- read_delim("data/sdg_07/sdg_07_10.tsv", delim = ",")
+sdg_07.sdg_07_11 <- read_delim("data/sdg_07/sdg_07_11.tsv", delim = ",")
+sdg_07.sdg_07_20 <- read_delim("data/sdg_07/sdg_07_20.tsv", delim = ",")
+sdg_07.sdg_07_30 <- read_delim("data/sdg_07/sdg_07_30.tsv", delim = ",")
+sdg_07.sdg_07_40 <- read_delim("data/sdg_07/sdg_07_40.tsv", delim = ",")
+sdg_07.sdg_07_50 <- read_delim("data/sdg_07/sdg_07_50.tsv", delim = ",")
+sdg_07.sdg_07_60 <- read_delim("data/sdg_07/sdg_07_60.tsv", delim = ",")
+sdg_08.sdg_01_41 <- read_delim("data/sdg_08/sdg_01_41.tsv", delim = ",")
+sdg_08.sdg_05_40 <- read_delim("data/sdg_08/sdg_05_40.tsv", delim = ",")
+sdg_08.sdg_08_10 <- read_delim("data/sdg_08/sdg_08_10.tsv", delim = ",")
+sdg_08.sdg_08_11 <- read_delim("data/sdg_08/sdg_08_11.tsv", delim = ",")
+sdg_08.sdg_08_20 <- read_delim("data/sdg_08/sdg_08_20.tsv", delim = ",")
+sdg_08.sdg_08_20a <- read_delim("data/sdg_08/sdg_08_20a.tsv", delim = ",")
+sdg_08.sdg_08_30 <- read_delim("data/sdg_08/sdg_08_30.tsv", delim = ",")
+sdg_08.sdg_08_30a <- read_delim("data/sdg_08/sdg_08_30a.tsv", delim = ",")
+sdg_08.sdg_08_40 <- read_delim("data/sdg_08/sdg_08_40.tsv", delim = ",")
+sdg_08.sdg_08_60 <- read_delim("data/sdg_08/sdg_08_60.tsv", delim = ",")
+sdg_09.sdg_04_20 <- read_delim("data/sdg_09/sdg_04_20.tsv", delim = ",")
+sdg_09.sdg_09_10 <- read_delim("data/sdg_09/sdg_09_10.tsv", delim = ",")
+sdg_09.sdg_09_30 <- read_delim("data/sdg_09/sdg_09_30.tsv", delim = ",")
+sdg_09.sdg_09_40 <- read_delim("data/sdg_09/sdg_09_40.tsv", delim = ",")
+sdg_09.sdg_09_50 <- read_delim("data/sdg_09/sdg_09_50.tsv", delim = ",")
+sdg_09.sdg_09_60 <- read_delim("data/sdg_09/sdg_09_60.tsv", delim = ",")
+sdg_09.sdg_09_70 <- read_delim("data/sdg_09/sdg_09_70.tsv", delim = ",")
+sdg_09.sdg_12_61 <- read_delim("data/sdg_09/sdg_12_61.tsv", delim = ",")
+sdg_09.sdg_17_60 <- read_delim("data/sdg_09/sdg_17_60.tsv", delim = ",")
+sdg_10.sdg_01_10a <- read_delim("data/sdg_10/sdg_01_10a.tsv", delim = ",")
+sdg_10.sdg_01_20a <- read_delim("data/sdg_10/sdg_01_20a.tsv", delim = ",")
+sdg_10.sdg_04_10a <- read_delim("data/sdg_10/sdg_04_10a.tsv", delim = ",")
+sdg_10.sdg_08_20a <- read_delim("data/sdg_10/sdg_08_20a.tsv", delim = ",")
+sdg_10.sdg_08_30a <- read_delim("data/sdg_10/sdg_08_30a.tsv", delim = ",")
+sdg_10.sdg_10_10 <- read_delim("data/sdg_10/sdg_10_10.tsv", delim = ",")
+sdg_10.sdg_10_20 <- read_delim("data/sdg_10/sdg_10_20.tsv", delim = ",")
+sdg_10.sdg_10_30 <- read_delim("data/sdg_10/sdg_10_30.tsv", delim = ",")
+sdg_10.sdg_10_41 <- read_delim("data/sdg_10/sdg_10_41.tsv", delim = ",")
+sdg_10.sdg_10_50 <- read_delim("data/sdg_10/sdg_10_50.tsv", delim = ",")
+sdg_10.sdg_10_60 <- read_delim("data/sdg_10/sdg_10_60.tsv", delim = ",")
+sdg_11.sdg_06_20 <- read_delim("data/sdg_11/sdg_06_20.tsv", delim = ",")
+sdg_11.sdg_09_50 <- read_delim("data/sdg_11/sdg_09_50.tsv", delim = ",")
+sdg_11.sdg_11_11 <- read_delim("data/sdg_11/sdg_11_11.tsv", delim = ",")
+sdg_11.sdg_11_20 <- read_delim("data/sdg_11/sdg_11_20.tsv", delim = ",")
+sdg_11.sdg_11_31 <- read_delim("data/sdg_11/sdg_11_31.tsv", delim = ",")
+sdg_11.sdg_11_40 <- read_delim("data/sdg_11/sdg_11_40.tsv", delim = ",")
+sdg_11.sdg_11_51 <- read_delim("data/sdg_11/sdg_11_51.tsv", delim = ",")
+sdg_11.sdg_11_60 <- read_delim("data/sdg_11/sdg_11_60.tsv", delim = ",")
+sdg_11.sdg_16_20 <- read_delim("data/sdg_11/sdg_16_20.tsv", delim = ",")
+sdg_12.sdg_07_30 <- read_delim("data/sdg_12/sdg_07_30.tsv", delim = ",")
+sdg_12.sdg_12_10 <- read_delim("data/sdg_12/sdg_12_10.tsv", delim = ",")
+sdg_12.sdg_12_21 <- read_delim("data/sdg_12/sdg_12_21.tsv", delim = ",")
+sdg_12.sdg_12_30 <- read_delim("data/sdg_12/sdg_12_30.tsv", delim = ",")
+sdg_12.sdg_12_41 <- read_delim("data/sdg_12/sdg_12_41.tsv", delim = ",")
+sdg_12.sdg_12_50 <- read_delim("data/sdg_12/sdg_12_50.tsv", delim = ",")
+sdg_12.sdg_12_61 <- read_delim("data/sdg_12/sdg_12_61.tsv", delim = ",")
+sdg_13.sdg_07_40 <- read_delim("data/sdg_13/sdg_07_40.tsv", delim = ",")
+sdg_13.sdg_12_30 <- read_delim("data/sdg_13/sdg_12_30.tsv", delim = ",")
+sdg_13.sdg_13_10 <- read_delim("data/sdg_13/sdg_13_10.tsv", delim = ",")
+sdg_13.sdg_13_21 <- read_delim("data/sdg_13/sdg_13_21.tsv", delim = ",")
+sdg_13.sdg_13_40 <- read_delim("data/sdg_13/sdg_13_40.tsv", delim = ",")
+sdg_13.sdg_13_50 <- read_delim("data/sdg_13/sdg_13_50.tsv", delim = ",")
+sdg_13.sdg_13_60 <- read_delim("data/sdg_13/sdg_13_60.tsv", delim = ",")
+sdg_14.sdg_14_10 <- read_delim("data/sdg_14/sdg_14_10.tsv", delim = ",")
+sdg_14.sdg_14_21 <- read_delim("data/sdg_14/sdg_14_21.tsv", delim = ",")
+sdg_14.sdg_14_30 <- read_delim("data/sdg_14/sdg_14_30.tsv", delim = ",")
+sdg_14.sdg_14_40 <- read_delim("data/sdg_14/sdg_14_40.tsv", delim = ",")
+sdg_14.sdg_14_50 <- read_delim("data/sdg_14/sdg_14_50.tsv", delim = ",")
+sdg_14.sdg_14_60 <- read_delim("data/sdg_14/sdg_14_60.tsv", delim = ",")
+sdg_15.sdg_06_30 <- read_delim("data/sdg_15/sdg_06_30.tsv", delim = ",")
+sdg_15.sdg_06_50 <- read_delim("data/sdg_15/sdg_06_50.tsv", delim = ",")
+sdg_15.sdg_15_10 <- read_delim("data/sdg_15/sdg_15_10.tsv", delim = ",")
+sdg_15.sdg_15_20 <- read_delim("data/sdg_15/sdg_15_20.tsv", delim = ",")
+sdg_15.sdg_15_41 <- read_delim("data/sdg_15/sdg_15_41.tsv", delim = ",")
+sdg_15.sdg_15_50 <- read_delim("data/sdg_15/sdg_15_50.tsv", delim = ",")
+sdg_15.sdg_15_60 <- read_delim("data/sdg_15/sdg_15_60.tsv", delim = ",")
+sdg_15.sdg_15_61 <- read_delim("data/sdg_15/sdg_15_61.tsv", delim = ",")
+sdg_16.sdg_16_10 <- read_delim("data/sdg_16/sdg_16_10.tsv", delim = ",")
+sdg_16.sdg_16_20 <- read_delim("data/sdg_16/sdg_16_20.tsv", delim = ",")
+sdg_16.sdg_16_30 <- read_delim("data/sdg_16/sdg_16_30.tsv", delim = ",")
+sdg_16.sdg_16_40 <- read_delim("data/sdg_16/sdg_16_40.tsv", delim = ",")
+sdg_16.sdg_16_50 <- read_delim("data/sdg_16/sdg_16_50.tsv", delim = ",")
+sdg_16.sdg_16_60 <- read_delim("data/sdg_16/sdg_16_60.tsv", delim = ",")
+sdg_17.sdg_17_10 <- read_delim("data/sdg_17/sdg_17_10.tsv", delim = ",")
+sdg_17.sdg_17_20 <- read_delim("data/sdg_17/sdg_17_20.tsv", delim = ",")
+sdg_17.sdg_17_30 <- read_delim("data/sdg_17/sdg_17_30.tsv", delim = ",")
+sdg_17.sdg_17_40 <- read_delim("data/sdg_17/sdg_17_40.tsv", delim = ",")
+sdg_17.sdg_17_50 <- read_delim("data/sdg_17/sdg_17_50.tsv", delim = ",")
+sdg_17.sdg_17_60 <- read_delim("data/sdg_17/sdg_17_60.tsv", delim = ",")
+
+
+```
+
+## Data cleaning and preprocessing
+
+```{r}
+# Get a list of all database objects in the environment
+database_names <- ls(pattern = "sdg_(.*)")
+
+# --------------Change name from geo/time to geo_time
+# Function to change column name
+change_column_name <- function(db_name) {
+  db <- get(db_name)
+  if ("geo\\time" %in% colnames(db)) {
+    db <- db %>% rename(geo_time = `geo\\time`)
+    assign(db_name, db, envir = .GlobalEnv)
+    message(paste("Column name changed in", db_name))
+  } else {
+    message(paste("No column named 'geo\\time' found in", db_name))
+  }
+}
+
+# Apply column name change to all databases
+lapply(database_names, change_column_name)
+```
+
+```{r}
+# Remove database without geo_time and select Spain and Germany
+remove_db_without_geo_time <- function(db_name) {
+  db <- get(db_name)
+  if ("geo_time" %in% colnames(db)) {
+    db <- db %>% 
+      filter(geo_time %in% c("ES", "DE"))
+    assign(db_name, db, envir = .GlobalEnv)
+    message(paste("Filtered rows in", db_name))
+  } else {
+    message(paste("No column named 'geo_time' found in", db_name))
+    rm(list = db_name, envir = .GlobalEnv)
+    message(paste("Removed", db_name, "from the environment"))
+  }
+}
+
+# Apply column filtering to all the databases
+lapply(database_names, remove_db_without_geo_time)
+```
+
+
+```{r}
+# Get a new list of all database objects in the environment
+database_names <- ls(pattern = "sdg_(.*)")
+
+# Chaage ":" to missing values (NAs)
+change_colon_to_na <- function(db_name) {
+  db <- get(db_name)
+  
+  if (is.data.frame(db) || is.matrix(db)) {
+    db[] <- lapply(db, function(x) ifelse(grepl(":", x), NA, x))
+    assign(db_name, db, envir = .GlobalEnv)
+    message(paste("Changed ':' to NA in", db_name))
+  } else if (is.list(db)) {
+    db <- lapply(db, function(x) {
+      if (is.data.frame(x) || is.matrix(x)) {
+        x[] <- lapply(x, function(y) ifelse(y == ":", NA, y))
+        message(paste("Changed ':' to NA in a nested data frame or matrix within", db_name))
+      }
+      x
+    })
+    assign(db_name, db, envir = .GlobalEnv)
+  } else {
+    message(paste("Unsupported data structure found in", db_name))
+  }
+}
+
+# Apply column filtering to all the databases
+lapply(database_names, change_colon_to_na)
+
+```
+
+There are some special characters that Eurostat uses to mark some data characteristics: 
+-------------MISSING: which ones---------------------
+
+```{r}
+#Remove this special characters
+remove_chars_from_columns <- function(db_name) {
+  db <- get(db_name)
+  
+  if (is.data.frame(db) || is.matrix(db)) {
+    columns_to_process <- grep("^19|^20", colnames(db), value = TRUE)
+    columns_to_process <- intersect(columns_to_process, colnames(db))
+    
+    db[, columns_to_process] <- lapply(db[, columns_to_process], function(x) gsub("[b-cdefnprsu-z]", "", x))
+    
+    assign(db_name, db, envir = .GlobalEnv)
+    message(paste("Removed specified characters from columns starting with '19' or '20' in", db_name))
+  } else if (is.list(db)) {
+    db <- lapply(db, function(x) {
+      if (is.data.frame(x) || is.matrix(x)) {
+        columns_to_process <- grep("^19|^20", colnames(x), value = TRUE)
+        columns_to_process <- intersect(columns_to_process, colnames(x))
+        
+        x[, columns_to_process] <- lapply(x[, columns_to_process], function(y) gsub("[b-cdefnprsu-z]", "", y))
+        
+        message(paste("Removed specified characters from columns starting with '19' or '20' in a nested data frame or matrix within", db_name))
+      }
+      x
+    })
+    assign(db_name, db, envir = .GlobalEnv)
+  } else {
+    message(paste("Unsupported data structure found in", db_name))
+  }
+}
+
+# Apply the function to all databases
+lapply(database_names, remove_chars_from_columns)
+
+```
+
+**Combining indicators from Spain and Germany in 2 datasets**
+
+Reasons: 
+
+- Increased data size: Combining indicators from multiple goals and countries will result in a larger dataset, providing more data points for the clustering algorithm. Having more data can improve the quality and robustness of the clustering results.
+
+- Enhanced pattern discovery: Clustering algorithms often perform better with a larger number of data points. By combining indicators, you may uncover additional patterns and relationships that might be missed when clustering smaller subsets of indicators.
+
+In order to perform the analysis and to create the final datasets we will need to remove all the non essential columns, as units and other specifications. 
+
+```{r}
+remove_columns <- function(database_names) {
+  for (database_name in database_names) {
+    database <- get(database_name)
+
+    # Identify columns to remove
+    columns_to_remove <- c()
+    for (col_name in colnames(database)) {
+      if (!(col_name == "geo_time" || grepl("^20", col_name))) { #we also remove years before 2000 since there is no information -------------> HAY QUE COMPROBAR ESTO
+        columns_to_remove <- c(columns_to_remove, col_name)
+      }
+    }
+
+    # Remove columns
+    database <- database[, !(colnames(database) %in% columns_to_remove)]
+
+    # Add updated database to global environment
+    assign(database_name, database, envir = .GlobalEnv)
+  }
+}
+#Apply the function to all the databases
+remove_columns(database_names)
+```
+
+
+
+```{r}
+# Create dataset for Spain
+spain_dataset <- data.frame()
+spain_database_names <- ls(pattern = "^sdg_")
+for (database_name in spain_database_names) {
+  database <- get(database_name)
+  database$geo_time <- as.character(database$geo_time)  # Convert geo_time column to character
+  spain_rows <- database[database$geo_time == "ES", ]
+  spain_dataset <- bind_rows(spain_dataset, spain_rows)
+}
+
+# Create dataset for Germany
+germany_dataset <- data.frame()
+germany_database_names <- ls(pattern = "^sdg_")
+for (database_name in germany_database_names) {
+  database <- get(database_name)
+  database$geo_time <- as.character(database$geo_time)  # Convert geo_time column to character
+  germany_rows <- database[database$geo_time == "DE", ]
+  germany_dataset <- bind_rows(germany_dataset, germany_rows)
+}
+
+```
+
+
+```{r}
+# Convert to numeric
+spain_dataset[, -1] <- lapply(spain_dataset[, -1], function(x) as.numeric(as.character(x)))
+germany_dataset[, -1] <- lapply(germany_dataset[, -1], function(x) as.numeric(as.character(x)))
+```
+
+
+```{r}
+# Remove the column for 2022 in Spain dataset
+spain_dataset <- spain_dataset %>% select(-`2022 `)
+# Remove the column for 2022 in Germany dataset
+germany_dataset <- germany_dataset %>% select(-`2022 `)
+
+```
+
+
+```{r}
+# Reorder columns in Spain dataset in reverse chronological order
+spain_dataset <- spain_dataset[, rev(order(colnames(spain_dataset)))]
+# Reorder columns in Germany dataset in reverse chronological order
+germany_dataset <- germany_dataset[, rev(order(colnames(germany_dataset)))]
+
+#save the datsets 
+write.csv(spain_dataset, file = "./data/spain_dataset.csv")
+write.csv(germany_dataset, file = "./data/germany_dataset.csv")
+```
+
