@@ -18,13 +18,7 @@ text-align: justify}
 </style>
 ```
 
-######## CLUSTERING PROBLEMS
-
-- Clustering cannot be done with NAs, so how to proceed?
-    - Imputing with mice (doesn't run and not correct due to non random missingness)
-    - Imputing with mean (not the same distribution)
-    - Remove rows (very few observations)
-- Cannot due clustering of one year since I need more than one column, normally more than 10. 
+-------------------------------------------COMMENTS AND EXPLANATIONS ARE MISSING------------------------------------------------------
 
 
 ## Libraries
@@ -33,153 +27,124 @@ text-align: justify}
 library(tidyverse)
 library(dplyr)
 library(mice)
-library(factoextra)
 library(zoo)
+library(randomForest)
+library(missForest)
+library(ggplot2)
+library(patchwork)
+library(factoextra)
 ```
 
 ## Read the data
 
 ```{r}
-spain <- read_csv("./data/spain_dataset.csv")
-germany <- read_csv("./data/germany_dataset.csv")
+data <- read_csv("./data/merged_data.csv")
 
 #remove the first row for clarity
-spain <- spain[, -1]
-germany <- germany[, -1]
+data <- data[, -1]
+```
+
+### Descriptive analysis
+
+Some preliminary analysis:
+
+```{r}
+summary(data)
+```
+
+### Some pre-processing
+
+```{r}
+# Remove columns from 2000 to 2009 and column 2022
+columns_to_remove <- c(2000:2009, 2022)
+data <- data[, !names(data) %in% columns_to_remove]
+
+#order the columns
+data <- data[, rev(order(colnames(data)))]
+
+#Check NAs
+na_percentage_by_country <- data.frame(geo_time = data$geo_time,
+                                       na_percentage = apply(data[, -(1:2)], 1, function(x) sum(is.na(x)) / length(x) * 100))
+
+na_percentage_by_year <- data.frame(year = colnames(data)[-(1:2)],
+                                    na_percentage = apply(data[, -(1:2)], 2, function(x) sum(is.na(x)) / length(x) * 100))
+
+```
+
+
+```{r}
+# Reshape the dataset to long format
+data_long <- data %>%
+  pivot_longer(cols = starts_with("20"), names_to = "year", values_to = "value")
+
+# Remove duplicates and compute the mean by indicator, country, and year
+data_mean <- data_long %>%
+  group_by(indicator, geo_time, year) %>%
+  summarize(mean_value = mean(value, na.rm = TRUE))
+
+# Pivot the dataset to wide format with indicator values as column names
+data_wide <- data_mean %>%
+  pivot_wider(names_from = indicator, values_from = mean_value)
+
+```
+
+
+### Imputation
+
+```{r}
+# Remove the 'X' prefix from the 'year' column
+data_wide$year <- sub("^X", "", data_wide$year)
+#Change NaN to NA
+data_wide <- lapply(data_wide, function(x) {x[is.nan(x)] <- NA; x})
+data_wide <- do.call(data.frame, data_wide)
+
+#Linear regression
+mice_object <- mice(data_wide[, -(1:2)], method = "norm", m = 10)
+imputed_data <- complete(mice_object)
+data_lm <- cbind(data_wide[, 1:2], imputed_data) #there are still some NAs --> Inherent missingness pattern
+
+#Random Forest
+mice_object <- mice(data_wide[, -(1:2)], method = "rf")
+imputed_data <- complete(mice_object)
+data_rf <- cbind(data_wide[, 1:2], imputed_data)
+
+#Miss Forest
+imputed_data <- missForest(data_wide[, -(1:2)])
+data_mf <- cbind(data_wide[, 1:2], imputed_data$ximp)
+
+```
+
+```{r}
+###Justify why i use miss forest.............................
 ```
 
 ## Clustering analysis
 
 ```{r}
-
-```
-
-
-### Descriptive analysis
-
-Some preliminar analysis:
-
-```{r}
-summary(spain)
-summary(germany)
-```
-
-## Some pre-processing
-
-```{r}
-#Check NAs: 
-# Calculate percentage of missing values in each column
-missing_percentage_germany <- sapply(germany, function(x) {
-  sum(is.na(x)) / length(x) * 100
-})
-# Create a data frame with column names and missing percentages
-missing_data_germany <- data.frame(column = names(germany), missing_percentage = missing_percentage_germany)
-# Sort the data frame by missing percentages in descending order
-missing_data_germany <- missing_data_germany[order(missing_data_germany$missing_percentage, decreasing = TRUE), ]
-
-# Calculate percentage of missing values in each column
-missing_percentage_spain <- sapply(spain, function(x) {
-  sum(is.na(x)) / length(x) * 100
-})
-# Create a data frame with column names and missing percentages
-missing_data_spain <- data.frame(column = names(spain), missing_percentage = missing_percentage_spain)
-# Sort the data frame by missing percentages in descending order
-missing_data_spain <- missing_data_spain[order(missing_data_spain$missing_percentage, decreasing = TRUE), ]
-
-missing_data_germany
-missing_data_spain
-```
-
-We will do the first analysis for only one particular period in this case 2016, since there are quality data in this period and was when SDG started. -----------FALTA EXPLICACIÓN 
-
-### Clustering
-
-```{r}
-#remove columns with more than 60% of missing values
-ES <- spain %>% select(-c("2001", "2002","2003"))
-DE <- germany %>% select(-c("2000","2001", "2002","2003"))  
-  
-ES$`2021` <- na.aggregate(ES$`2021`, FUN = mean)  
-ES$`2020` <- na.aggregate(ES$`2020`, FUN = mean)
-ES$`2019` <- na.aggregate(ES$`2019`, FUN = mean)
-ES$`2018` <- na.aggregate(ES$`2018`, FUN = mean)
-ES$`2017` <- na.aggregate(ES$`2017`, FUN = mean)
-ES$`2016` <- na.aggregate(ES$`2016`, FUN = mean)
-ES$`2015` <- na.aggregate(ES$`2015`, FUN = mean)
-ES$`2000` <- na.aggregate(ES$`2000`, FUN = mean)
-ES$`2004` <- na.aggregate(ES$`2004`, FUN = mean)
-ES$`2005` <- na.aggregate(ES$`2005`, FUN = mean)
-ES$`2006` <- na.aggregate(ES$`2006`, FUN = mean)
-ES$`2007` <- na.aggregate(ES$`2007`, FUN = mean)
-ES$`2008` <- na.aggregate(ES$`2008`, FUN = mean)
-ES$`2009` <- na.aggregate(ES$`2009`, FUN = mean)
-ES$`2010` <- na.aggregate(ES$`2010`, FUN = mean)
-ES$`2011` <- na.aggregate(ES$`2011`, FUN = mean)
-ES$`2012` <- na.aggregate(ES$`2012`, FUN = mean)
-ES$`2013` <- na.aggregate(ES$`2013`, FUN = mean)
-ES$`2014` <- na.aggregate(ES$`2014`, FUN = mean)
-
-DE$`2021` <- na.aggregate(DE$`2021`, FUN = mean)
-DE$`2020` <- na.aggregate(DE$`2020`, FUN = mean)
-DE$`2019` <- na.aggregate(DE$`2019`, FUN = mean)
-DE$`2018` <- na.aggregate(DE$`2018`, FUN = mean)
-DE$`2017` <- na.aggregate(DE$`2017`, FUN = mean)
-DE$`2016` <- na.aggregate(DE$`2016`, FUN = mean)
-DE$`2015` <- na.aggregate(DE$`2015`, FUN = mean)
-DE$`2004` <- na.aggregate(DE$`2004`, FUN = mean)
-DE$`2005` <- na.aggregate(DE$`2005`, FUN = mean)
-DE$`2006` <- na.aggregate(DE$`2006`, FUN = mean)
-DE$`2007` <- na.aggregate(DE$`2007`, FUN = mean)
-DE$`2008` <- na.aggregate(DE$`2008`, FUN = mean)
-DE$`2009` <- na.aggregate(DE$`2009`, FUN = mean)
-DE$`2010` <- na.aggregate(DE$`2010`, FUN = mean)
-DE$`2011` <- na.aggregate(DE$`2011`, FUN = mean)
-DE$`2012` <- na.aggregate(DE$`2012`, FUN = mean)
-DE$`2013` <- na.aggregate(DE$`2013`, FUN = mean)
-DE$`2014` <- na.aggregate(DE$`2014`, FUN = mean)
+X <- data_mf %>% select(-c(year, geo_time))
 ```
 
 ```{r}
-#################NO VA###############
-merged <- bind_rows(spain, germany)
-#First we need to take only 2016 in Spain and Germany
-data_2016 <-  merged %>% select(c("2016", geo_time))
-
-data_impute <- merged[, c("geo_time", "2015", "2016", "2017", "2018", "2019", "2020")]
-data_impute$geo_time <- as.factor(data_impute$geo_time)
-# Create the formula for imputation
-formula <- as.formula(paste("Cbind(2015, 2016, 2017, 2018, 2019, 2020)", "~ geo_time"))
-# Perform imputation
-mice_mod <- mice(data_impute, method = c("mean"), m = 1, formula = list(formula))
-imputed_data <- complete(mice_mod)
-```
-
-```{r}
-m = 4 
-mice_mod <- mice(data_2016) 
-df <- complete(mice_mod, action=m)
-```
-
-
-Initial guess for the number of clusters: 7  
-  
-```{r}
-ES <- ES %>% select(-c(geo_time))
-DE <- DE %>% select(-c(geo_time))
 set.seed(123)
-k = 3
-fit <- kmeans(scale(ES), centers = k, nstart = 10000)
-fit <- kmeans(scale(DE), centers = k, nstart = 10000)
-
+k = 5
+fit <- kmeans(scale(X), centers = k, nstart = 10000)
 groups <- fit$cluster
 barplot(table(groups), col = "#FF00FF")
+cluster_labels <- fit$cluster
 
-fviz_nbclust(scale(ES), kmeans, method = 'wss', k.max = 10, nstart = 1000) 
-#optimal number of clusters 3 
 
+fviz_nbclust(X, kmeans, method = 'wss', k.max = 10, nstart = 1000) 
+```
+
+```{r}
+set.seed(123)
+k = 4
+fit <- kmeans(scale(X), centers = k, nstart = 10000)
+groups <- fit$cluster
+barplot(table(groups), col = "#FF00FF")
 cluster_labels <- fit$cluster
 ```
-## Interpretation of centers
+
 
 ```{r}
 centers=fit$centers
@@ -187,54 +152,24 @@ centers=fit$centers
 barplot(centers[1,], las=2, col="#FF00FF")
 barplot(centers[2,], las=2, col="#FF00FF")
 barplot(centers[3,], las=2, col="#FF00FF")
+barplot(centers[4,], las=2, col="#FF00FF")
 
 ```
 
 ## Clusplot 
 
 ```{r}
-fviz_cluster(fit, data = ES, geom = c("point"),ellipse.type = 'norm', pointsize=1)+
-  theme_minimal()+scale_fill_brewer(palette="Paired")
+names <- data_mf$geo_time
 
-fviz_cluster(fit, data = DE, geom = c("point"),ellipse.type = 'norm', pointsize=1)+
-  theme_minimal()+scale_fill_brewer(palette="Paired")
+#clusplot
+fviz_cluster(fit, data = X, geom = c("point"),ellipse.type = 'norm', pointsize=1)+
+  theme_minimal()+geom_text(label=names,hjust=0, vjust=0,size=2,check_overlap = T)+scale_fill_brewer(palette="Paired")
 ```
-
-## Number of groups
-
-We will use different methods (cluster sums of squares, average silhouette and gap statistics) to know which is the optimal number of clusters:
 
 ```{r}
-fviz_nbclust(scale(X), kmeans, method = 'wss', k.max = 10, nstart = 1000) 
-fviz_nbclust(scale(X), kmeans, method = 'silhouette', k.max = 10, nstart = 1000)  
-fviz_nbclust(scale(X), kmeans, method = 'gap_stat', k.max = 10, nstart = 100, nboot = 500) 
+fit.km <-eclust(X, "kmeans", stand = T, k = 4, graph = T)
 ```
 
-Despite the fact that the number of ideal clusters indicated to us is not seven, in this analysis we will leave this figure because the number of regions is quite high and in this way we do not saturate the clusters.
-
-```{r}
-fit.km <-eclust(data_2016, "kmeans", stand = T, k = 3, graph = T)
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
 
 
 
