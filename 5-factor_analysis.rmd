@@ -1,0 +1,191 @@
+---
+title: "Draft TFM"
+author: "Victoria Costas"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+---
+
+```{r global_options, include=T, echo = F}
+knitr::opts_chunk$set(echo = T, warning=FALSE, message=FALSE)
+```
+
+```{=html}
+<style>
+body {
+text-align: justify}
+</style>
+```
+
+
+--------MISSING EXPLANATIONS AND COMMENTS--------------------------
+
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(mice)
+library(missForest)
+library(ggplot2)
+library(polycor)
+library(ggcorrplot)
+library(stats)
+library(psych)
+library(GPArotation)
+```
+
+## Read the data
+
+```{r}
+data <- read_csv("./data/merged_data.csv")
+
+#remove the first column for clarity
+data <- data[, -1]
+```
+
+### Descriptive analysis
+
+Some preliminary analysis:
+
+```{r}
+summary(data)
+```
+
+### Some pre-processing
+
+We will perform the same preprocessing as in the clustering analysis part. As the preprocessing is the same we will skip the parts related to NAs checking and imputation.
+
+```{r}
+# Remove columns from 2000 to 2009 and column 2022
+columns_to_remove <- c(2000:2009, 2022)
+data <- data[, !names(data) %in% columns_to_remove]
+
+#order the columns
+data <- data[, rev(order(colnames(data)))]
+```
+
+
+```{r}
+# Reshape the dataset to long format
+data_long <- data %>%
+  pivot_longer(cols = starts_with("20"), names_to = "year", values_to = "value")
+
+# Remove duplicates and compute the mean by indicator, country, and year
+data_mean <- data_long %>%
+  group_by(indicator, geo_time, year) %>%
+  summarize(mean_value = mean(value, na.rm = TRUE))
+
+# Pivot the dataset to wide format with indicator values as column names
+data_wide <- data_mean %>%
+  pivot_wider(names_from = indicator, values_from = mean_value)
+
+```
+
+
+### Imputation
+
+```{r}
+# Remove the 'X' prefix from the 'year' column
+data_wide$year <- sub("^X", "", data_wide$year)
+
+#Miss Forest
+imputed_data <- missForest(data_wide[, -(1:2)])
+data_mf <- cbind(data_wide[, 1:2], imputed_data$ximp)
+
+```
+
+```{r}
+
+```
+
+## Factor analysis
+
+```{r}
+data <- data_mf[, -1:-2]
+corr <- cor(data)
+ggcorrplot(corr, hc.order = T, type="lower")
+```
+
+```{r}
+test <- cortest.bartlett(corr)
+test$p
+KMO(corr)
+```
+
+```{r}
+### prueba de dos modelos con tres factores
+model_mle<-fa(corr,
+           nfactors = 4,
+           rotate = "none",
+           fm="mle") # modelo máxima verosimilitud
+
+model_minres<-fa(corr,
+           nfactors = 4,
+           rotate = "none",
+           fm="minres") # modelo minimo residuo
+
+######comparando las comunalidades
+sort(model_mle$communality, decreasing = T) -> c1
+sort(model_minres$communality, decreasing = T) -> c2
+head(cbind(c1,c2))
+```
+
+
+```{r}
+####comparacion de las unicidades 
+sort(model_mle$uniquenesses,decreasing = T) -> u1
+sort(model_minres$uniquenesses,decreasing = T) -> u2
+head(cbind(u1,u2))
+
+```
+
+```{r}
+scree(corr)
+```
+
+```{r}
+fa.parallel(corr,n.obs=200,fa="fa",fm="minres")
+```
+
+```{r}
+#Rotation
+rot<-c("none", "varimax", "quartimax","Promax")
+
+bi_mod<-function(type){
+biplot.psych(fa(data, nfactors = 2, fm ="minres", rotate = type), main = paste("Biplot with rotation", type), col=c(2,3,4), pch = c(21,18))  
+}
+sapply(rot,bi_mod)
+```
+
+```{r}
+model_varimax <- fa(corr, nfactors = 6, rotate = "varimax", fa="minres")
+
+fa.diagram(model_varimax)
+```
+
+```{r}
+print(model_varimax$loadings, cut = 0) 
+model_varimax$uniquenesses
+model_varimax$communalities
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
