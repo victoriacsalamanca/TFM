@@ -1,5 +1,5 @@
 ---
-title: "Draft TFM"
+title: "Cluster Analysis"
 author: "Victoria Costas"
 date: "`r Sys.Date()`"
 output:
@@ -18,9 +18,6 @@ text-align: justify}
 </style>
 ```
 
--------------------------------------------COMMENTS AND EXPLANATIONS ARE MISSING------------------------------------------------------
-
-
 ## Libraries
 
 ```{r}
@@ -33,6 +30,7 @@ library(missForest)
 library(ggplot2)
 library(patchwork)
 library(factoextra)
+library(plotly)
 ```
 
 ## Read the data
@@ -52,7 +50,9 @@ Some preliminary analysis:
 summary(data)
 ```
 
-### Some pre-processing
+In this first look at the database we can see that there are quite a few missing values and therefore in the following sections we will see how to deal with them.
+
+### Preprocessing
 
 ```{r}
 # Remove columns from 2000 to 2009 and column 2022
@@ -71,6 +71,7 @@ na_percentage_by_year <- data.frame(year = colnames(data)[-(1:2)],
 
 ```
 
+As a first step we will remove the columns with the highest number of missing values as they are a hindrance to the analysis and actually imputing so many missing values greatly alters the results. In order to proceed with data imputation we first have to modify the database to a format suitable for cluster analysis.
 
 ```{r}
 # Reshape the dataset to long format
@@ -88,8 +89,9 @@ data_wide <- data_mean %>%
 
 ```
 
-
 ### Imputation
+
+In the following, we will apply three different imputation methods, the first one based on linear regression and the following ones are the methods of random forest and miss forest. 
 
 ```{r}
 # Remove the 'X' prefix from the 'year' column
@@ -101,7 +103,7 @@ data_wide <- do.call(data.frame, data_wide)
 #Linear regression
 mice_object <- mice(data_wide[, -(1:2)], method = "norm", m = 10)
 imputed_data <- complete(mice_object)
-data_lm <- cbind(data_wide[, 1:2], imputed_data) #there are still some NAs --> Inherent missingness pattern
+data_lm <- cbind(data_wide[, 1:2], imputed_data)
 
 #Random Forest
 mice_object <- mice(data_wide[, -(1:2)], method = "rf")
@@ -111,30 +113,42 @@ data_rf <- cbind(data_wide[, 1:2], imputed_data)
 #Miss Forest
 imputed_data <- missForest(data_wide[, -(1:2)])
 data_mf <- cbind(data_wide[, 1:2], imputed_data$ximp)
-
 ```
 
+Finally, to continue with all the analyses we want to do, we will use the database obtained from the miss forest imputation as it is the one that most closely resembles the original distribution of values. Moreover, since this database will be used repeatedly, it will be stored locally.
+
 ```{r}
+#save the dataset for other analysis
+write.csv(data_mf, file = "./data/data_mf.csv")
 ###Justify why i use miss forest.............................
 ```
 
-## Clustering analysis
+## Cluster analysis
+
+This analysis can only be done with numeric variables, so non numeric variables will be excluded from the dataset used for clustering.
 
 ```{r}
 X <- data_mf %>% select(-c(year, geo_time))
 ```
 
+We will set 5 as the starting number of clusters, as it seems reasonable for the number of observations and countries, later we will check with the "Elbow" method if another number of clusters is more recommendable.
+
 ```{r}
-set.seed(123)
+set.seed(123) #set seed for reproducibility
 k = 5
 fit <- kmeans(scale(X), centers = k, nstart = 10000)
 groups <- fit$cluster
 barplot(table(groups), col = "#FF00FF")
 cluster_labels <- fit$cluster
+```
 
+If we look at the bar chart we can see that there are two very similar clusters (3 and 5) which may mean that another number of clusters may fit the data better, which we will check below. In addition, there is one very large cluster and one quite insignificant cluster. In this case 50.8% of the total sum of squares is explained by the variability between the clusters. 
 
+```{r}
 fviz_nbclust(X, kmeans, method = 'wss', k.max = 10, nstart = 1000) 
 ```
+
+With regard to the ideal number of clusters, according to the previous graph it would be around 4, so the number of clusters we started with was not unreasonable. The analysis will be repeated with 4 clusters instead of 5. 
 
 ```{r}
 set.seed(123)
@@ -145,6 +159,7 @@ barplot(table(groups), col = "#FF00FF")
 cluster_labels <- fit$cluster
 ```
 
+In this case, we can see that there is quite a difference between all the clusters, with one cluster standing out above the rest and being much more numerous than the rest.
 
 ```{r}
 centers=fit$centers
@@ -156,21 +171,40 @@ barplot(centers[4,], las=2, col="#FF00FF")
 
 ```
 
+In the above bar charts we can see the characteristics of the clusters. There are two quite similar clusters in which their goals are close to zero except for a few exceptions such as goal 13 or 2 of the first cluster or goal 10 of the second cluster. Cluster number three has mainly negative values except for three goals 13, 4 and 7, while cluster number four is the opposite, with the score of the goals being almost always positive except for objectives 10, 13, 5 and 8, which are close to 0. 
+
 ## Clusplot 
+
+In the following graph we can see how these clusters are distributed and which countries belong to which cluster.
 
 ```{r}
 names <- data_mf$geo_time
 
+colors <- ifelse(names %in% c("ES", "DE"), c("red", "blue"), "grey")
+
 #clusplot
-fviz_cluster(fit, data = X, geom = c("point"),ellipse.type = 'norm', pointsize=1)+
-  theme_minimal()+geom_text(label=names,hjust=0, vjust=0,size=2,check_overlap = T)+scale_fill_brewer(palette="Paired")
+p <- fviz_cluster(fit, data = X, geom = c("point"), ellipse.type = 'norm', pointsize=1)+
+  theme_minimal()+ geom_text(label=names,hjust=0, vjust=0,size=2,check_overlap = T) + scale_fill_brewer(palette="Paired")
+
+# # Manually modify the colors of the points
+# p$data <- p$data %>%
+#   mutate(color = colors)
+# 
+# p
 ```
+
+
+```{r}
+ggplotly(p, tooltip = "text")
+```
+
+We can clearly observe that Spain and Germany belong to the same cluster, which may be due to the fact that they have similar characteristics as a country.
 
 ```{r}
 fit.km <-eclust(X, "kmeans", stand = T, k = 4, graph = T)
 ```
 
-
+In this last graph we observe the boundaries of each cluster, we can see that number four is the largest, while two and three overlap significantly.
 
 
 

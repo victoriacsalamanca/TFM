@@ -1,5 +1,5 @@
 ---
-title: "Draft TFM"
+title: "Preprocessing for Clustering Analysis"
 author: "Victoria Costas"
 date: "`r Sys.Date()`"
 output:
@@ -22,9 +22,12 @@ text-align: justify}
 
 Since the databases are not ready for analysis, certain changes will be made in order to have a database ready for the analysis we want to perform.
 
-First of all, the geotime column will be changed to geo-time so that there are no problems with special characters, and as this column is the one that contains the information on the countries (which is the one we will use), all the databases that do not contain it will be eliminated. Once this is done we will change ":" to NAs since eurostat uses ":" to indicate missing values, Eurostat also uses other characters to mark circumstances such as time jumps in values etc. and these characters will also be removed. In addition, columns that are not needed for the analysis and years before 2000 (due to lack of information) will be removed. Finally, we will keep the rows for Spain and Germany, create two new databases for these two countries and make some final changes like converting to numerical or reordering the columns. 
+First of all, the "geo/time" column will be changed to "geo_time" so that there are no problems with special characters, and as this column is the one that contains the information on the countries (which is the one we will use), all the databases that do not contain it will be eliminated. Once this is done we will change ":" to NAs since eurostat uses ":" to indicate missing values, Eurostat also uses other characters to mark circumstances such as time jumps in values etc. and these characters will also be removed. In addition, columns that are not needed for the analysis and years before 2000 (due to lack of information, more than 80% of NAs) will be removed. Finally, we will create one new database combining all the previous datasets and make some final changes like converting to numerical or reordering the columns. 
 
---------MISSING: origin of the databases, etc.-------------
+**About the databases:**
+
+Data was collected on 3rd of March 2023, thus if there have been any changes or updates to the databases after this date, they will not be taken into account. [Database](https://ec.europa.eu/eurostat/web/sdi/database) can be online accessed in the Eurostat web page. 
+
 
 ## Libraries
 
@@ -36,8 +39,6 @@ library(mice)
 ```
 
 ## Read the data
-
-Data collected on the 3rd of March 2023.
 
 ```{r}
 sdg_01.sdg_01_10 <- read_delim("data/sdg_01/new/sdg_01_10.tsv", delim = ",")
@@ -178,17 +179,16 @@ sdg_17.sdg_17_30 <- read_delim("data/sdg_17/new/sdg_17_30.tsv", delim = ",")
 sdg_17.sdg_17_40 <- read_delim("data/sdg_17/new/sdg_17_40.tsv", delim = ",")
 sdg_17.sdg_17_50 <- read_delim("data/sdg_17/new/sdg_17_50.tsv", delim = ",")
 sdg_17.sdg_17_60 <- read_delim("data/sdg_17/new/sdg_17_60.tsv", delim = ",")
-
 ```
 
 ## Data cleaning and preprocessing
 
 ```{r}
-# Get a list of all database objects in the environment
+#get a list of all database objects in the environment
 database_names <- ls(pattern = "sdg_(.*)")
 
 # --------------Change name from geo/time to geo_time
-# Function to change column name
+#function to change column name
 change_column_name <- function(db_name) {
   db <- get(db_name)
   if ("geo\\time" %in% colnames(db)) {
@@ -200,12 +200,12 @@ change_column_name <- function(db_name) {
   }
 }
 
-# Apply column name change to all databases
+#apply column name change to all databases
 lapply(database_names, change_column_name)
 ```
 
 ```{r}
-# Remove database without geo_time and select all the countries except from union of countries (EU, EA etc.)
+#remove database without geo_time and select all the countries except from union of countries (EU, EA etc.)
 remove_db_without_geo_time <- function(db_name) {
   db <- get(db_name)
   if ("geo_time" %in% colnames(db)) {
@@ -220,16 +220,16 @@ remove_db_without_geo_time <- function(db_name) {
   }
 }
 
-# Apply column filtering to all the databases
+#apply column filtering to all the databases
 lapply(database_names, remove_db_without_geo_time)
 ```
 
 
 ```{r}
-# Get a new list of all database objects in the environment
+#get a new list of all database objects in the environment
 database_names <- ls(pattern = "sdg_(.*)")
 
-# Change ":" to missing values (NAs)
+#change ":" to missing values (NAs)
 change_colon_to_na <- function(db_name) {
   db <- get(db_name)
   
@@ -251,16 +251,27 @@ change_colon_to_na <- function(db_name) {
   }
 }
 
-# Apply column filtering to all the databases
+#apply column filtering to all the databases
 lapply(database_names, change_colon_to_na)
 
 ```
 
-There are some special characters that Eurostat uses to mark some data characteristics: 
--------------MISSING: which ones---------------------
+There are some special values and flags that Eurostat uses to mark some data characteristics that need to be removed:
+
+- b = break in time series
+- c = confidential
+- d = definition differs
+- e = estimated
+- f = forecast
+- n = not significant
+- p = provisional
+- r = revised
+- s = Eurostat estimate
+- u = low reliability
+- z = not applicable
 
 ```{r}
-#Remove this special characters
+#remove flags
 remove_chars_from_columns <- function(db_name) {
   db <- get(db_name)
   
@@ -290,13 +301,14 @@ remove_chars_from_columns <- function(db_name) {
   }
 }
 
-# Apply the function to all databases
+#apply the function to all databases
 lapply(database_names, remove_chars_from_columns)
 
 ```
 
 
 ```{r}
+#remove non essential columns
 remove_columns <- function(database_names) {
   for (database_name in database_names) {
     database <- get(database_name)
@@ -304,7 +316,7 @@ remove_columns <- function(database_names) {
     # Identify columns to remove
     columns_to_remove <- c()
     for (col_name in colnames(database)) {
-      if (!(col_name == "geo_time" || col_name == "indicator" || grepl("^20", col_name))) { #we also remove years before 2000 since there is no information -------------> HAY QUE COMPROBAR ESTO
+      if (!(col_name == "geo_time" || col_name == "indicator" || grepl("^20", col_name))) {
         columns_to_remove <- c(columns_to_remove, col_name)
       }
     }
@@ -316,14 +328,15 @@ remove_columns <- function(database_names) {
     assign(database_name, database, envir = .GlobalEnv)
   }
 }
-#Apply the function to all the databases
+
+#apply the function to all the databases
 remove_columns(database_names)
 ```
 
 
 
 ```{r}
-# Convert to numeric
+#convert to numeric
 convert_to_numeric <- function(db) {
   db[, -1:-2] <- lapply(db[, -1:-2], as.numeric)
   return(db)
@@ -340,12 +353,11 @@ for (db_name in database_names) {
     }
   }
 }
-
 ```
 
 
 ```{r}
-# keep only the years we are interested in
+#keep only the years we are interested in
 remove_years <- function(db_name) {
   if (exists(db_name)) {
     db <- get(db_name)
@@ -358,10 +370,10 @@ remove_years <- function(db_name) {
   }
 }
 
-# Initialize an empty data frame to store the merged data
+#initialize an empty data frame to store the merged data
 merged_data <- data.frame()
 
-# Iterate over the database names
+#iterate over the database names
 for (db_name in database_names) {
   if (exists(db_name)) {
     db <- get(db_name)
@@ -373,7 +385,7 @@ for (db_name in database_names) {
 
 
 ```{r}
-#save the datset
+#save the dataset
 write.csv(merged_data, file = "./data/merged_data.csv")
 ```
 
