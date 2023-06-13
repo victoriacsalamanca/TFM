@@ -1,5 +1,5 @@
 ---
-title: "Draft TFM"
+title: "Factor Analysis"
 author: "Victoria Costas"
 date: "`r Sys.Date()`"
 output:
@@ -17,10 +17,6 @@ body {
 text-align: justify}
 </style>
 ```
-
-
---------MISSING EXPLANATIONS AND COMMENTS--------------------------
-
 
 ## Libraries
 
@@ -40,7 +36,7 @@ library(GPArotation)
 ## Read the data
 
 ```{r}
-data <- read_csv("./data/merged_data.csv")
+data <- read_csv("./data/data_mf.csv")
 
 #remove the first column for clarity
 data <- data[, -1]
@@ -54,60 +50,21 @@ Some preliminary analysis:
 summary(data)
 ```
 
-### Some pre-processing
-
-We will perform the same preprocessing as in the clustering analysis part. As the preprocessing is the same we will skip the parts related to NAs checking and imputation.
-
-```{r}
-# Remove columns from 2000 to 2009 and column 2022
-columns_to_remove <- c(2000:2009, 2022)
-data <- data[, !names(data) %in% columns_to_remove]
-
-#order the columns
-data <- data[, rev(order(colnames(data)))]
-```
-
-
-```{r}
-# Reshape the dataset to long format
-data_long <- data %>%
-  pivot_longer(cols = starts_with("20"), names_to = "year", values_to = "value")
-
-# Remove duplicates and compute the mean by indicator, country, and year
-data_mean <- data_long %>%
-  group_by(indicator, geo_time, year) %>%
-  summarize(mean_value = mean(value, na.rm = TRUE))
-
-# Pivot the dataset to wide format with indicator values as column names
-data_wide <- data_mean %>%
-  pivot_wider(names_from = indicator, values_from = mean_value)
-
-```
-
-
-### Imputation
-
-```{r}
-# Remove the 'X' prefix from the 'year' column
-data_wide$year <- sub("^X", "", data_wide$year)
-
-#Miss Forest
-imputed_data <- missForest(data_wide[, -(1:2)])
-data_mf <- cbind(data_wide[, 1:2], imputed_data$ximp)
-
-```
-
-```{r}
-
-```
-
 ## Factor analysis
 
+The steps for conducting a factor analysis are summarised as follows:
+1. Verification that the matrix is factorisable
+2. Extraction of factors
+3. Factor rotation
+4. Interpretation of results 
+
 ```{r}
-data <- data_mf[, -1:-2]
+data <- data[, -1:-2]
 corr <- cor(data)
 ggcorrplot(corr, hc.order = T, type="lower")
 ```
+
+The above graph is the correlation matrix that shows the relationship between the different goals. Once we have verified that there is a certain correlation between them, we will use Bartlett's test of sphericity and the Kaiser-Meyer-Olkin test to check that our matrix is indeed factorisable.
 
 ```{r}
 test <- cortest.bartlett(corr)
@@ -115,32 +72,39 @@ test$p
 KMO(corr)
 ```
 
+First we will perform Bartlett's test which would test the null hypothesis that the variables are uncorrelated in the population. In this case the p-value is much lower than 0.05 so we can say that we reject the null hypothesis and there is enough correlation to use factor analysis. Secondly, we will apply the Kaiser-Meyer-Olkin criterion which also indicates whether the data are suitable for factor analysis. In this case the overall MSA is 0.74 which means that the data are suitable for factor analysis.
+
 ```{r}
-### prueba de dos modelos con tres factores
+#models with 4 factors
 model_mle<-fa(corr,
            nfactors = 4,
            rotate = "none",
-           fm="mle") # modelo máxima verosimilitud
+           fm="mle") #maximum likelihood model
 
 model_minres<-fa(corr,
            nfactors = 4,
            rotate = "none",
-           fm="minres") # modelo minimo residuo
-
-######comparando las comunalidades
-sort(model_mle$communality, decreasing = T) -> c1
-sort(model_minres$communality, decreasing = T) -> c2
-head(cbind(c1,c2))
+           fm="minres") #minimum residual model
 ```
 
 
 ```{r}
-####comparacion de las unicidades 
-sort(model_mle$uniquenesses,decreasing = T) -> u1
-sort(model_minres$uniquenesses,decreasing = T) -> u2
-head(cbind(u1,u2))
-
+#comparing communalities
+c1 <- sort(model_mle$communality, decreasing = T) 
+c2 <- sort(model_minres$communality, decreasing = T)
+head(cbind(c1,c2))
 ```
+
+Communalities represent the proportion of variance in each observed variable that is accounted for by the extracted factors. The values indicate how well the factors explain the corresponding SDGs. Higher values suggest that the factors capture a larger portion of the variance in the SDGs.
+
+```{r}
+#comparison of uniquenesses  
+u1 <- sort(model_mle$uniquenesses,decreasing = T)
+u2 <- sort(model_minres$uniquenesses,decreasing = T)
+head(cbind(u1,u2))
+```
+
+Uniquenesses, on the other hand, represent the proportion of variance in each observed variable that is unique or not explained by the factors. Higher uniqueness values indicate that the corresponding SDGs are less explained by the extracted factors. If we look at the results of both models, they seem to perform quite similarly in both communalities and uniquenesses. These results indicate that both factor models capture and explain a considerable portion of the variance in the SDGs.
 
 ```{r}
 scree(corr)
@@ -149,6 +113,8 @@ scree(corr)
 ```{r}
 fa.parallel(corr,n.obs=200,fa="fa",fm="minres")
 ```
+
+The above graphs serve as a guide to identify the number of factors to be used in the models, in this case the parallel analysis indicates the ideal number of factors is 5. 
 
 ```{r}
 #Rotation
@@ -160,11 +126,27 @@ biplot.psych(fa(data, nfactors = 2, fm ="minres", rotate = type), main = paste("
 sapply(rot,bi_mod)
 ```
 
+Rotation serves as a technique to simplify and interpret the factor structure obtained from the initial factor extraction. The rotation aims to achieve a more interpretable and meaningful solution by maximizing the clarity of the factor loadings. For the interpretation, we use varimax rotation in order to facilitate the interpretability of the factors since this method simplifies the matrix and interpreting factor analysis is generally difficult.
+
 ```{r}
-model_varimax <- fa(corr, nfactors = 6, rotate = "varimax", fa="minres")
+model_varimax <- fa(corr, nfactors = 5, rotate = "varimax", fa="minres")
 
 fa.diagram(model_varimax)
 ```
+
+Each factor represents a group of variables (SDGs) that share common variance:
+
+- MR1: Includes Goal 17, Goal 16, Goal 6, Goal 9, Goal 15, and Goal 14. These SDGs are strongly associated with MR1, suggesting that they share common underlying factors and are interrelated. The strength of the relationship between these SDGs and MR1 is likely high.
+
+- MR2: Includes Goal 13, Goal 2, and Goal 1. Among these SDGs, Goal 13 has a unique relationship with MR2, suggesting that it has a distinct association with this factor. Goals 2 and 1 are also associated with MR2, although the nature of their relationship may be different from that of Goal 13.
+
+- MR3: Includes Goal 11, Goal 3, and Goal 12. These SDGs are associated with MR3, indicating that they share common factors. The strength of the relationship between these SDGs and MR3 is likely high.
+
+- MR4: Includes Goal 10, Goal 8, and Goal 5. These SDGs are grouped together and associated with MR4, suggesting that they share underlying factors. The strength of the relationship between these SDGs and MR4 is likely high.
+
+- MR5: Includes Goal 4. This SDG is uniquely associated with MR5, indicating that it has a distinct relationship with this factor.
+
+Goal 7 is not assigned to any specific factor, suggesting that it does not show a strong relationship with any of the five factors identified in the factor analysis, irrespective of the number of factors used in the analysis.
 
 ```{r}
 print(model_varimax$loadings, cut = 0) 
@@ -172,7 +154,7 @@ model_varimax$uniquenesses
 model_varimax$communalities
 ```
 
-
+In these last results we see a summary of the factor analysis, showing the relationships between the goals and the factors (loadings), also showing the strength of the factors by the sum of squares loadings. Finally, s variables have unique relationships with specific factors. For example, Goal 13 has a strong loading on MR2, suggesting a distinct relationship between Goal 13 and this factor as stated before. 
 
 
 
