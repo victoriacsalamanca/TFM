@@ -2,9 +2,12 @@
 The following files contain the essential code to run a factor, cluster and trend analysis of the United Nations Sustainable Development Goals implemented in 2015. This is part of the Master Thesis of the course in Computational Social Sciences of the UC3M. Data is available in Eurostat database web page. 
 
 ## Installation
-- Prerequisites to have `R` and an `rmd` reader installed. 
-- Then `git clone` the [TFM repository](https://github.com/victoriacsalamanca/TFM.git).
-- Install dependencies (`install_dependencies.R`)
+- Prerequisites to have `R` and an `rmd` reader as [RStudio](https://posit.co/download/rstudio-desktop/) installed. 
+- Then clone the repository:
+```bash
+$> git clone https://github.com/victoriacsalamanca/TFM.git
+```
+- Install dependencies (execute `install_dependencies.R`)
 
 ## Usage
 The following steps are required to be performed in the order given. The first time all the files are run, they must be run in the order given in their name. 
