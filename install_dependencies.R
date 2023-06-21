@@ -1,0 +1,23 @@
+#------------------------------Packages Installation----------------------------
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("mice")
+install.packages("zoo")
+install.packages("randomForest")
+install.packages("missForest")
+install.packages("ggplot2")
+install.packages("patchwork")
+install.packages("factoextra")
+install.packages("plotly")
+install.packages("janitor")
+install.packages("polycor")
+install.packages("ggcorrplot")
+install.packages("stats")
+install.packages("psych")
+install.packages("GPArotation")
+install.packages("shiny")
+install.packages("shinydashboard")
+install.packages("shinydashboardPlus")
+install.packages("base64enc")
+
+

@@ -156,7 +156,32 @@ model_varimax$communalities
 
 In these last results we see a summary of the factor analysis, showing the relationships between the goals and the factors (loadings), also showing the strength of the factors by the sum of squares loadings. Finally, s variables have unique relationships with specific factors. For example, Goal 13 has a strong loading on MR2, suggesting a distinct relationship between Goal 13 and this factor as stated before. 
 
+### Factor scores for cluster analysis
 
+```{r}
+# Obtain factor scores
+factor_scores <- predict(model_varimax, data = data)
+
+# Perform cluster analysis using factor scores
+cluster_results <- kmeans(factor_scores, centers = 7)
+
+# View cluster membership for each observation
+cluster_membership <- cluster_results$cluster
+
+# View cluster centroids
+cluster_centroids <- cluster_results$centers
+
+# Define the unique cluster labels
+unique_clusters <- unique(cluster_membership)
+
+# Create a color palette for the clusters
+color_palette <- rainbow(length(unique_clusters))
+
+# Plotting the cluster analysis results
+plot(factor_scores, col = color_palette[cluster_membership], pch = 16, main = "Cluster Analysis Results")
+# Add a legend
+legend("topright", legend = unique_clusters, col = color_palette, pch = 16, title = "Clusters")
+```
 
 
 

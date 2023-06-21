@@ -1,5 +1,5 @@
 ---
-title: "Draft TFM"
+title: "Dashboard SDG"
 author: "Victoria Costas"
 date: "`r Sys.Date()`"
 output:
@@ -22,834 +22,13 @@ text-align: justify}
 library(tidyverse)
 library(shiny)
 library(shinydashboard)
-library(DT)
+library(shinydashboardPlus)
+library(base64enc)
+library(plotly)
+library(factoextra)
 ```
 
-
-
-```{r}
-header <- dashboardHeader(title = "SDG in Spain and Germany",
-                          titleWidth = 300)
-```
-
-
-```{r}
-sidebar <- dashboardSidebar(
-  width = 300,
-  sidebarMenu(
-    menuItem("Overview", tabName = "Overview", icon = icon("dashboard")),
-    menuItem("Widgets", icon = icon("th"), tabName = "widgets",
-             badgeLabel = "new", badgeColor = "green"), 
-    # sidebarSearchForm(textId = "searchText", buttonId = "searchButton",
-    #                 label = "Search Date"),
-    menuItem("Goals", icon = icon("dashboard"),
-             menuSubItem("Goal 1", tabName = "Goal1"),
-             menuSubItem("Goal 2", tabName = "Goal2"),
-             menuSubItem("Goal 3", tabName = "Goal3"),
-             menuSubItem("Goal 4", tabName = "Goal4"),
-             menuSubItem("Goal 5", tabName = "Goal5"),
-             menuSubItem("Goal 6", tabName = "Goal6"),
-             menuSubItem("Goal 7", tabName = "Goal7"),
-             menuSubItem("Goal 8", tabName = "Goal8"),
-             menuSubItem("Goal 9", tabName = "Goal9"),
-             menuSubItem("Goal 10", tabName = "Goal10"),
-             menuSubItem("Goal 11", tabName = "Goal11"),
-             menuSubItem("Goal 12", tabName = "Goal12"),
-             menuSubItem("Goal 13", tabName = "Goal13"),
-             menuSubItem("Goal 14", tabName = "Goal14"),
-             menuSubItem("Goal 15", tabName = "Goal15"),
-             menuSubItem("Goal 16", tabName = "Goal16"),
-             menuSubItem("Goal 17", tabName = "Goal17")),
-    menuItem("Notes", tabName = "Notes", icon = icon("dashboard"))
-  )
-)
-```
-
-
-```{r}
-ind_tables <- lapply(1:17, function(ind) {
-  paste0("ind", ind)
-})
-
-body <- dashboardBody(
-  tabItems(
-    tabItem(tabName = "Overview", 
-            h2("Overview"),
-            fluidRow(
-                column(
-                  width = 4,
-                  selectInput(
-                    inputId = "countryFilter",
-                    label = "Select Country",
-                    choices = c("Spain", "Germany", "Both"),
-                    selected = "Spain"
-                  )
-                )
-            ),
-            fluidRow(
-                column(
-                  width = 4,
-                  selectInput(
-                    inputId = "yearFilter",
-                    label = "Select Year",
-                    choices = c("2010", "2011", "2012", "2013", "2014", "2015", 
-                                "2016", "2017", "2018", "2019", "2020", "2021"),
-                    selected = "2010"
-                  )
-                )
-            ),
-            column(
-                width = 8,
-                plotOutput("plot_overall")
-            ),
-    ),
-
-    tabItem(tabName = "widgets",
-      h2("Widgets tab content")
-    ),
-    lapply(1:17, function(ind) {
-    tabItem(tabName = paste0("Goal", ind),
-            plotOutput(ind_tables[[ind]]),
-            fluidRow(
-              box(
-                title = "Growth",
-                width = 4,
-                solidHeader = TRUE,
-                status = "primary",
-                textOutput(paste0("growthText", ind))
-              )
-            )
-    )
-  }),
-    tabItem(tabName = "Goal1",
-              # fluidRow(
-              #   column(
-              #     width = 4,
-              #     box(
-              #       title = "Spain Growth",
-              #       solidHeader = TRUE,
-              #       status = "primary",
-              #       textOutput("growthTextSpain_Goal1")
-              #     )
-              #   ),
-              #   column(
-              #     width = 4,
-              #     box(
-              #       title = "Germany Growth",
-              #       solidHeader = TRUE,
-              #       status = "primary",
-              #       textOutput("growthTextGermany_Goal1")
-              #     )
-              #   )
-              # ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot1")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal2",
-              # fluidRow(
-              #   column(
-              #     width = 4,
-              #     box(
-              #       title = "Spain Growth",
-              #       solidHeader = TRUE,
-              #       status = "primary",
-              #       textOutput("growthTextSpain_2")
-              #     )
-              #   ),
-              #   column(
-              #     width = 4,
-              #     box(
-              #       title = "Germany Growth",
-              #       solidHeader = TRUE,
-              #       status = "primary",
-              #       textOutput("growthTextGermany_2")
-              #     )
-              #   )
-              # ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot2")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal3",
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_3")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_3")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot3")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal4", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_4")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_4")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot4")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal5", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_5")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_5")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot5")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal6",
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_6")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_6")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot6")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal7", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_7")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_7")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot7")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal8", 
-           # fluidRow(
-           #      column(
-           #        width = 4,
-           #        box(
-           #          title = "Spain Growth",
-           #          solidHeader = TRUE,
-           #          status = "primary",
-           #          textOutput("growthTextSpain_8")
-           #        )
-           #      ),
-           #      column(
-           #        width = 4,
-           #        box(
-           #          title = "Germany Growth",
-           #          solidHeader = TRUE,
-           #          status = "primary",
-           #          textOutput("growthTextGermany_8")
-           #        )
-           #      )
-           #    ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot8")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal9", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_9")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_9")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot9")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal10", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_10")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_10")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot10")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal11", 
-           # fluidRow(
-           #      column(
-           #        width = 4,
-           #        box(
-           #          title = "Spain Growth",
-           #          solidHeader = TRUE,
-           #          status = "primary",
-           #          textOutput("growthTextSpain_11")
-           #        )
-           #      ),
-           #      column(
-           #        width = 4,
-           #        box(
-           #          title = "Germany Growth",
-           #          solidHeader = TRUE,
-           #          status = "primary",
-           #          textOutput("growthTextGermany_11")
-           #        )
-           #      )
-           #    ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot11")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal12", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_12")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_12")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot12")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal13", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_13")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_13")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot13")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal14", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_14")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_14")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot14")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal15", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_15")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_15")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot15")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal16", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_16")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_16")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot16")
-                )
-              )
-      ),
-    tabItem(tabName = "Goal17", 
-            # fluidRow(
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Spain Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextSpain_17")
-            #       )
-            #     ),
-            #     column(
-            #       width = 4,
-            #       box(
-            #         title = "Germany Growth",
-            #         solidHeader = TRUE,
-            #         status = "primary",
-            #         textOutput("growthTextGermany_17")
-            #       )
-            #     )
-            #   ),
-              fluidRow(
-                column(
-                  width = 8,  # Adjust the width of the plot output
-                  plotOutput("plot17")
-                )
-              )
-      )
-  )
-)
-
-
-```
-
-```{r}
-# Put them together into a dashboardPage
-ui <- dashboardPage(
-  header,
-  sidebar,
-  body
-)
-
-```
-
-```{r}
-plot_trends <- function(indicator_number){
-  renderPlot({
-    data %>% filter(indicator == paste0("ind", indicator_number)) %>% 
-  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
-  geom_line(size = 1.5) +
-  labs(title = paste0("Progress of Goal ", indicator_number) , x = "Year", y = "Average Value") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 16, face = "bold"),
-        axis.title = element_text(size = 12),
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-        axis.text.y = element_text(size = 10)) +
-  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
-                     labels = c("ES" = "Spain", "DE" = "Germany"),
-                     name = "Country")
-  })
-}
-```
-
-
-
-```{r}
-server <- function(input, output) {
-  # Render plots for Goals
-  output$plot1 <- plot_trends('1')
-  output$plot2 <- plot_trends('2')
-  output$plot3 <- plot_trends('3')
-  output$plot4 <- plot_trends('4')
-  output$plot5 <- plot_trends('5')
-  output$plot6 <- plot_trends('6')
-  output$plot7 <- plot_trends('7')
-  output$plot8 <- plot_trends('8')
-  output$plot9 <- plot_trends('9')
-  output$plot10 <- plot_trends('10')
-  output$plot11 <- plot_trends('11')
-  output$plot12 <- plot_trends('12')
-  output$plot13 <- plot_trends('13')
-  output$plot14 <- plot_trends('14')
-  output$plot15 <- plot_trends('15')
-  output$plot16 <- plot_trends('16')
-  output$plot17 <- plot_trends('17')
-  
-  # Define the observer for the country and year filters
-  observeEvent(
-    {
-      input$countryFilter
-      input$yearFilter
-    },
-    {
-      # Update the plots based on the selected options
-      output$plot_overall <- renderPlot(overall_plot_disp(input$countryFilter, input$yearFilter)) 
-      }
-  )
-    
-    # Define a list to store the tables for each goal
-  ind_tables <- list()
-  
-  # Iterate over the goals
-  for (ind in 1:17) {
-    # Create a unique output ID for each table
-    output_id <- paste0("table_ind", ind)
-    
-    # Render the table for the current goal
-    output[[output_id]] <- renderTable({
-      calculateGrowthRate(ind)
-    })
-    
-    # Store the table in the list
-    ind_tables[[ind]] <- output_id
-}
-
-  
-  # goal_names <- c('ind1', 'ind2', 'ind3', 'ind4', 'ind5', 'ind6', 'ind7', 'ind8', 'ind9', 'ind10', 'ind11', 'ind12', 'ind13', 'ind14', 'ind15', 'ind16', 'ind17')
-  # # Generate outputs for each goal
-  # 
-  # growth_texts_spain <- calculateGrowthRate('ES', )
-  # for (goal in goal_names) {
-  #   output[[paste0("growthTextSpain_", goal)]] <- renderText({
-  #     'hola'#calculateGrowthRate("ES", goal)
-  #   })
-  #   
-  #   output[[paste0("growthTextGermany_", goal)]] <- renderText({
-  #     'adios'#calculateGrowthRate("DE", goal)
-  #   })
-  # }
-
-}
-
-```
-
-```{r}
-
-overall_plot_disp <- function(country, year){
-  if (country == "Spain"){
-      data_year <- overall_stats_es[overall_stats_es$year == year, ]
-  
-      # Determine fill colors based on positive/negative values
-      data_year$fill_color <- ifelse(data_year$Average_Value >= 0, "Positive", "Negative")
-      
-      result <- ggplot(data_year, aes(x = indicator, y = Average_Value, fill = fill_color)) +
-        geom_bar(stat = "identity", position = "dodge") +
-        labs(title = paste("Overall Statistics:", year), x = "Indicator", y = "Average Value") +
-        scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "#FF6666")) +
-        theme_minimal() +
-        theme(legend.position = "none") +
-        coord_flip()
-      
-  } else if (country == "Germany") {
-    data_year <- overall_stats_de[overall_stats_de$year == year, ]
-  
-    # Determine fill colors based on positive/negative values
-    data_year$fill_color <- ifelse(data_year$Average_Value >= 0, "Positive", "Negative")
-  
-    result <- ggplot(data_year, aes(x = indicator, y = Average_Value, fill = fill_color)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = paste("Overall Statistics:", year), x = "Indicator", y = "Average Value") +
-    scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "#FF6666")) +  # Set fill colors
-    theme_minimal() +
-    theme(legend.position = "none") +
-    coord_flip()
-    
-  } else if (country == "Both"){
-    data_year <- overall_stats_combined[overall_stats_combined$year == year, ]
-  
-    # Determine fill colors based on positive/negative values
-    data_year$fill_color <- ifelse(data_year$Average_Value >= 0, "Positive", "Negative")
-  
-    result <- ggplot(data_year, aes(x = indicator, y = Average_Value, fill = fill_color)) +
-    geom_bar(stat = "identity", position = "dodge") +
-    labs(title = paste("Overall Statistics:", year), x = "Indicator", y = "Average Value") +
-    scale_fill_manual(values = c("Positive" = "lightgreen", "Negative" = "#FF6666")) +  # Set fill colors
-    theme_minimal() +
-    theme(legend.position = "none") +
-    coord_flip()
-  }
-
-  return(result)
-}
-```
- 
-
-```{r}
-# calculateGrowthRate <- function(country, ind) {
-#   # Filter data for the selected country
-#   filtered_data <- data %>%
-#     filter(geo_time == country)
-#   
-#   # Calculate growth rate for the selected country and indicator
-#   growth <- data %>%
-#     arrange(indicator, year) %>%
-#     group_by(indicator) %>%
-#     filter(complete.cases(Average_Value)) %>%
-#     mutate(Growth_Rate = (Average_Value - lag(Average_Value)) / lag(Average_Value) * 100)
-#   
-#   # Filter the growth rate for the selected indicator
-#   growth_indicator <- growth %>%
-#     filter(indicator == ind) %>%
-#     pull(Growth_Rate)
-#   
-#   print(growth_indicator)
-#   
-#   growth_texts <- c()
-#   # Determine if growth is positive or negative
-#   for (i in c(1:length(growth_indicator))) {
-#     x <- growth_indicator[i]
-# 
-#     if (is.na(x)){
-#       growth_texts[i] <- "No data"
-#     } else{
-#       if (x >= 0) {
-#           growth_texts[i] <- paste0("Growth (", country, "): +", x, "%")
-#       } else {
-#           growth_texts[i] <- paste0("Growth (", country, "): -", x, "%")
-#       }
-#     }
-#   }
-#   
-#   # Return the growth text
-#   return(growth_texts)
-# }
-
-calculateGrowthRate <- function(ind) {
-  # Filter data for the selected goal
-  filtered_data <- data %>%
-    filter(ind == ind)
-  
-  # Calculate growth rate for Spain
-  growth_spain <- filtered_data %>%
-    filter(geo_time == "ES") %>%
-    arrange(indicator, year) %>%
-    group_by(indicator, year) %>%
-    filter(complete.cases(Average_Value)) %>%
-    mutate(Growth_Rate_Spain = (Average_Value - lag(Average_Value)) / lag(Average_Value) * 100)
-  
-  # Calculate growth rate for Germany
-  growth_germany <- filtered_data %>%
-    filter(geo_time == "DE") %>%
-    arrange(indicator, year) %>%
-    group_by(indicator, year) %>%
-    filter(complete.cases(Average_Value)) %>%
-    mutate(Growth_Rate_Germany = (Average_Value - lag(Average_Value)) / lag(Average_Value) * 100)
-  
-  # Filter the growth rates for the selected indicator
-  growth_indicator <- bind_cols(growth_spain, growth_germany) %>%
-    select(year, Growth_Rate_Spain, Growth_Rate_Germany)
-  
-  return(growth_indicator)
-}
-
-
-```
-
-
-```{r}
-shinyApp(ui, server)
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#############THIS NEEDS TO BE  AT THE START
-
-All the data that I use for the dashboard need to be at the start of the document, meanwhile the dashboard isn`t complete is at the bottom.
-
-## Read the data
+## Data needed for the Dashboard
 
 ```{r}
 spain_trends <- read_csv("./data/spain_trends.csv")
@@ -860,9 +39,6 @@ spain_trends <- spain_trends[, -1]
 germany_trends <- germany_trends[, -1]
 ```
 
-
-## Normalize the data
-
 ```{r}
 trends <- rbind(spain_trends, germany_trends)
 
@@ -871,24 +47,12 @@ trends_scaled <- trends
 trends_scaled$value <- scale(trends$value)
 ```
 
-
-Once scaled the data, we will compute the average for each goal.
-
 ```{r}
 #compute the average for each goal each year
 average_by_goal_year <- trends_scaled %>%
   group_by(indicator, year, geo_time) %>%
   summarise(Average_Value = mean(value, na.rm = TRUE))
-
-head(average_by_goal_year)
 ```
-
-
-## Trends analysis
-
-### Simple analysis
-
-We will merge the data in order to perform the analysis
 
 ```{r}
 #data for the year 2010 onwards
@@ -909,14 +73,774 @@ overall_stats_combined <- rbind(overall_stats_es, overall_stats_de)
 ```
 
 ```{r}
-growth <- data %>%
-  arrange(indicator, geo_time, year) %>%
-  group_by(indicator, geo_time) %>%
-  filter(complete.cases(Average_Value)) %>%
-  mutate(Growth_Rate = (Average_Value - lag(Average_Value)) / lag(Average_Value) * 100)
+data_mf <- read_csv("data/data_mf.csv")
+data_mf <- data_mf[,-1]
+#Entire time series
+X <- data_mf %>% select(-c(year, geo_time))
+set.seed(123)
+k = 7
+fit <- kmeans(scale(X), centers = k, nstart = 10000)
+groups <- fit$cluster
+cluster_labels <- fit$cluster
+names <- data_mf$geo_time
+centers <- fit$centers
+
+#From 2010 to 2015
+data_old <- subset(data_mf, year %in% c(2010, 2011, 2012, 2013, 2014, 2015))
+X_old <- data_old %>% select(-c(year, geo_time))
+
+k = 7
+fit_old <- kmeans(scale(X_old), centers = k, nstart = 10000)
+groups_old <- fit_old$cluster
+cluster_labels_old <- fit_old$cluster
+names_old <- data_old$geo_time
+centers_old <- fit_old$centers
+
+
+#From 2016 to 2021
+data_new <- subset(data_mf, year %in% c(2016, 2017, 2018, 2019, 2020, 2021))
+X_new <- data_new %>% select(-c(year, geo_time))
+
+k = 6
+fit_new <- kmeans(scale(X_new), centers = k, nstart = 10000)
+groups_new <- fit_new$cluster
+cluster_labels_new <- fit_new$cluster
+names_new <- data_new$geo_time
+centers_new <- fit_new$centers
+
+
+```
+
+## Functions needed for the Dashboard
+
+```{r}
+cluster_plot <- function(year){
+  set.seed(123)
+  if (year == "2010-2021"){
+    
+      p <- fviz_cluster(fit, data = X, geom = c("point"), ellipse.type = 'norm', pointsize=1)+
+      theme_minimal()+ geom_text(label=names,hjust=0, vjust=0,size=2,check_overlap = T) + scale_fill_brewer(palette="Paired")
+      
+      clusplot <- ggplotly(p, tooltip = "text")
+      
+  } else if (year == "2010-2015 (Pre-SDG period)"){
+    
+      p_old <- fviz_cluster(fit_old, data = X_old, geom = c("point"), ellipse.type = 'norm', pointsize=1)+
+      theme_minimal()+ geom_text(label=names_old,hjust=0, vjust=0,size=2,check_overlap = T) + scale_fill_brewer(palette="Paired")
+      
+      clusplot <- ggplotly(p_old, tooltip = "text")
+      
+  } else if (year == "2016-2021 (SDG period)") {
+    
+      p_new <- fviz_cluster(fit_new, data = X_new, geom = c("point"), ellipse.type = 'norm', pointsize=1)+
+      theme_minimal()+ geom_text(label=names_new,hjust=0, vjust=0,size=2,check_overlap = T) + scale_fill_brewer(palette="Paired")
+      
+      clusplot <- ggplotly(p_new, tooltip = "text")
+  }
+ 
+   return(clusplot)
+}
+```
+
+```{r}
+bar_image <- function(year, is_first){
+  if (year == "2010-2021"){
+    if(is_first){
+      image_file <- "www/6_all.png"
+    } else{
+      image_file <- "www/7_all.png"
+    }
+  } else if (year == "2010-2015 (Pre-SDG period)"){
+    if(is_first){
+      image_file <- "www/5_old_es.png"
+    } else{
+      image_file <- "www/3_old_de.png"
+    }
+  } else if (year == "2016-2021 (SDG period)") {
+    if(is_first){
+      image_file <- "www/5_new_both.png"
+    } else{
+      return("")
+    }
+  }
+   return(image_file)
+}
+
+
+bar_text <- function(year){
+  if (year == "2016-2021 (SDG period)") {
+    text <- ""
+  } else {
+    text <- "Goal Performance (Germany)"
+  }
+   return(text)
+}
 ```
 
 
 ```{r}
+plot_trends <- function(indicator_number){
+  renderPlot({
+    data %>% filter(indicator == paste0("ind", indicator_number)) %>% 
+  ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
+  geom_line(size = 1.5) +
+  labs(title = paste0("Progress of Goal ", indicator_number) , x = "Year", y = "Average Value") +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.title = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10)) +
+  scale_color_manual(values = c("ES" = "blue", "DE" = "red"),
+                     labels = c("ES" = "Spain", "DE" = "Germany"),
+                     name = "Country")
+  })
+}
 
 ```
+
+```{r}
+ output_goals <- function(i) {
+   image_file <- paste0("www/SDG", i, ".png")
+   image_data <- readBin(image_file, "raw", file.info(image_file)$size)
+   image <- paste0("data:image/jpeg;base64,", base64encode(image_data))
+   return(image)
+ }
+
+file <- "www/SDG_all.png"
+image_data_principal <- readBin(file, "raw", file.info(file)$size)
+image_principal <- paste0("data:image/jpeg;base64,", base64encode(image_data_principal)) 
+```
+
+```{r}
+top_countries_by_goal <- function(){
+    result <- list()
+    
+    for (ind in 1:17) {
+      goal <- paste0("ind", ind)
+      
+      #Filter data for 2010
+      filtered_year_2010 <- subset(data_mf, year == "2010")
+      top_10_2010 <- subset(filtered_year_2010, select = c("geo_time", goal))
+      top_10_2010 <- top_10_2010[order(-top_10_2010[[goal]]), ]
+      top_10_2010 <- head(top_10_2010, 10)
+      
+      #Filter data for 2020
+      filtered_year_2020 <- subset(data_mf, year == "2020")
+      top_10_2020 <- subset(filtered_year_2020, select = c("geo_time", goal))
+      top_10_2020 <- top_10_2020[order(-top_10_2020[[goal]]), ]
+      top_10_2020 <- head(top_10_2020, 10)
+      
+      goal_df <- data.frame("2010" = top_10_2010$geo_time, "2020" = top_10_2020$geo_time, check.names = FALSE)
+      result[[goal]] <- goal_df
+    }
+    
+    return(result)
+  }
+```
+
+
+## Dashboard components
+
+```{r}
+header <- dashboardHeader(title = "SDG in Spain and Germany",
+                          titleWidth = 300)
+```
+
+
+```{r}
+sidebar <- dashboardSidebar(
+  width = 300,
+  sidebarMenu(
+    menuItem("Overview", tabName = "Overview", icon = icon("dashboard")),
+    menuItem("Goals", icon = icon("bullseye"),
+             menuSubItem("Goal 1", tabName = "Goal1"),
+             menuSubItem("Goal 2", tabName = "Goal2"),
+             menuSubItem("Goal 3", tabName = "Goal3"),
+             menuSubItem("Goal 4", tabName = "Goal4"),
+             menuSubItem("Goal 5", tabName = "Goal5"),
+             menuSubItem("Goal 6", tabName = "Goal6"),
+             menuSubItem("Goal 7", tabName = "Goal7"),
+             menuSubItem("Goal 8", tabName = "Goal8"),
+             menuSubItem("Goal 9", tabName = "Goal9"),
+             menuSubItem("Goal 10", tabName = "Goal10"),
+             menuSubItem("Goal 11", tabName = "Goal11"),
+             menuSubItem("Goal 12", tabName = "Goal12"),
+             menuSubItem("Goal 13", tabName = "Goal13"),
+             menuSubItem("Goal 14", tabName = "Goal14"),
+             menuSubItem("Goal 15", tabName = "Goal15"),
+             menuSubItem("Goal 16", tabName = "Goal16"),
+             menuSubItem("Goal 17", tabName = "Goal17")),
+    menuItem("Notes", tabName = "Notes", icon = icon("sticky-note"),
+             badgeLabel = "new", badgeColor = "yellow")
+  )
+)
+```
+
+
+```{r}
+body <- dashboardBody(
+  tags$style(HTML("
+      .menu-subitem .title {
+        display: flex;
+        align-items: center;
+      }
+      .menu-subitem .title img {
+        margin-right: 5px;
+        margin-left: 5px;
+        height: 10%;
+      }
+    ")),
+  tabItems(
+    tabItem(tabName = "Overview", 
+            # h2("Overview"),
+             fluidPage(
+              titlePanel(
+                div(
+                    img(src = image_principal, height = "100px"),
+                    "Overview",
+                    class = "title"
+                  )
+                )
+              ),
+            fluidRow(
+                column(
+                  width = 4,
+                  selectInput(
+                    inputId = "yearFilter",
+                    label = "Select Year",
+                    choices = c("2010-2015 (Pre-SDG period)", "2016-2021 (SDG period)", "2010-2021"),
+                    selected = "2010-2015 (Pre-SDG period)"
+                  )
+                )
+            ),
+            fluidRow(
+              column(
+                  width = 8,
+                  plotlyOutput("clusplot")
+              )
+            ),
+            fluidRow(
+              column(
+                  width = 8,
+                  div(
+                    HTML("<br><br>"),
+                    h3("Goal Performance"),
+                    plotOutput("barplot1")
+                  )
+              )
+            ),
+            fluidRow(
+              column(
+                  width = 8,
+                  div(
+                    h3(textOutput("barplot2text")),
+                    plotOutput("barplot2")
+                  )
+              )
+            ),
+    ),
+    tabItem(tabName = "widgets",
+      h2("Widgets tab content")
+    ),
+    tabItem(tabName = "Notes",
+      h2("Notes on the Dashboard"),
+      fluidRow(
+        column(
+        width = 4,
+        box(
+          title = div("Notices", class = "custom-box-header-pos"),
+          width = 12,
+          solidHeader = TRUE,
+          p("All data shown here are taken from Eurostat's Sustainable Development Goals database, but have been further processed. The results shown here may vary from data from organisations such as the UN or the EU, because the UN does not specify how they measure goals. This dashboard is only intended to show the performance of Germany and Spain and their context.")
+          )
+        )
+      )
+    ),
+    tabItem(tabName = "Goal1",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('1'), height = "100px"),
+                    "Goal 1. No Poverty",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot1"),
+                      tableOutput("table_goal1")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal2",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('2'), height = "100px"),
+                    "Goal 2. Zero Hunger",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot2"),
+                      tableOutput("table_goal2")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal3",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('3'), height = "100px"),
+                    "Goal 3. Good Heath and Well-being",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot3"),
+                      tableOutput("table_goal3")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal4", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('4'), height = "100px"),
+                    "Goal 4. Quality Education",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot4"),
+                      tableOutput("table_goal4")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal5",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('5'), height = "100px"),
+                    "Goal 5. Gender Equality",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot5"),
+                      tableOutput("table_goal5")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal6",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('6'), height = "100px"),
+                    "Goal 6. Clean Water and Sanitation",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot6"),
+                      tableOutput("table_goal6")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal7",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('7'), height = "100px"),
+                    "Goal 7. Affordable and Clean Energy",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot7"),
+                      tableOutput("table_goal7")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal8", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('8'), height = "100px"),
+                    "Goal 8. Decent Work and Economic Growth",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot8"),
+                      tableOutput("table_goal8")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal9", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('9'), height = "100px"),
+                    "Goal 9. Industry, Innovation and Infrastructure",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot9"),
+                      tableOutput("table_goal9")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal10",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('10'), height = "100px"),
+                    "Goal 10. Reduced Inequalities",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot10"),
+                      tableOutput("table_goal10")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal11",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('11'), height = "100px"),
+                    "Goal 11. Sustainable Cities and Communities",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot11"),
+                      tableOutput("table_goal11")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal12",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('12'), height = "100px"),
+                    "Goal 12. Responsible Consumption and Production",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot12"),
+                      tableOutput("table_goal12")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal13", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('13'), height = "100px"),
+                    "Goal 13. Climate Action",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot13"),
+                      tableOutput("table_goal13")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal14", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('14'), height = "100px"),
+                    "Goal 14. Life Below Water",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot14"),
+                      tableOutput("table_goal14")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal15", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('15'), height = "100px"),
+                    "Goal 15. Life on Land",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot15"),
+                      tableOutput("table_goal15")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal16",
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('16'), height = "100px"),
+                    "Goal 16. Peace, Justice and Strong Institutions",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot16"),
+                      tableOutput("table_goal16")
+                    )
+                )
+            )
+      ),
+    tabItem(tabName = "Goal17", 
+            fluidPage(
+              titlePanel(
+                div(
+                    img(src = output_goals('17'), height = "100px"),
+                    "Goal 17. Partnerships for the Goals",
+                    class = "title"
+                  )
+                )
+              ),
+                fluidRow(
+                  box(width = 12, title = "Progress Plot and Top-10 Countries in 2010 and 2020", 
+                    splitLayout(
+                      cellWidths = c("75%", "25%"),
+                      plotOutput("plot17"),
+                      tableOutput("table_goal17")
+                    )
+                )
+            )
+      )
+  )
+)
+
+
+```
+
+## Server and UI
+
+```{r}
+#Put them together into a dashboardPage
+ui <- dashboardPage(
+  header,
+  sidebar,
+  body
+)
+```
+
+```{r}
+server <- function(input, output) {
+  #Render plots for Goals
+  output$plot1 <- plot_trends('1')
+  output$plot2 <- plot_trends('2')
+  output$plot3 <- plot_trends('3')
+  output$plot4 <- plot_trends('4')
+  output$plot5 <- plot_trends('5')
+  output$plot6 <- plot_trends('6')
+  output$plot7 <- plot_trends('7')
+  output$plot8 <- plot_trends('8')
+  output$plot9 <- plot_trends('9')
+  output$plot10 <- plot_trends('10')
+  output$plot11 <- plot_trends('11')
+  output$plot12 <- plot_trends('12')
+  output$plot13 <- plot_trends('13')
+  output$plot14 <- plot_trends('14')
+  output$plot15 <- plot_trends('15')
+  output$plot16 <- plot_trends('16')
+  output$plot17 <- plot_trends('17')
+  
+  #Define the observer for the country and year filters
+  observeEvent(
+    {
+      input$yearFilter
+    },
+    {
+      #Update the plots based on the selected options
+      output$clusplot <- renderPlotly(cluster_plot(input$yearFilter))
+      
+      output$barplot1 <- renderImage({
+            filename <- bar_image(input$yearFilter, is_first = TRUE)
+            #Return a list containing the file name
+            list(src = filename,
+                 width = "75%",
+                 height = "auto")
+          }, deleteFile=FALSE)
+      output$barplot2 <- renderImage({
+            filename <- bar_image(input$yearFilter, is_first = FALSE)
+            #Return a list containing the filename
+            list(src = filename,
+                 width = "75%",
+                 height = "auto")
+          }, deleteFile=FALSE)
+      output$barplot2text <- renderText(bar_text(input$yearFilter))
+    }
+  )
+  
+  top_countries_by_goal_results <- top_countries_by_goal()
+  output$table_goal1 <- renderTable(top_countries_by_goal_results[[1]], bordered = T)
+  output$table_goal2 <- renderTable(top_countries_by_goal_results[[2]], bordered = T)
+  output$table_goal3 <- renderTable(top_countries_by_goal_results[[3]], bordered = T)
+  output$table_goal4 <- renderTable(top_countries_by_goal_results[[4]], bordered = T)
+  output$table_goal5 <- renderTable(top_countries_by_goal_results[[5]], bordered = T)
+  output$table_goal6 <- renderTable(top_countries_by_goal_results[[6]], bordered = T)
+  output$table_goal7 <- renderTable(top_countries_by_goal_results[[7]], bordered = T)
+  output$table_goal8 <- renderTable(top_countries_by_goal_results[[8]], bordered = T)
+  output$table_goal9 <- renderTable(top_countries_by_goal_results[[9]], bordered = T)
+  output$table_goal10 <- renderTable(top_countries_by_goal_results[[10]], bordered = T)
+  output$table_goal11 <- renderTable(top_countries_by_goal_results[[11]], bordered = T)
+  output$table_goal12 <- renderTable(top_countries_by_goal_results[[12]], bordered = T)
+  output$table_goal13 <- renderTable(top_countries_by_goal_results[[13]], bordered = T)
+  output$table_goal14 <- renderTable(top_countries_by_goal_results[[14]], bordered = T)
+  output$table_goal15 <- renderTable(top_countries_by_goal_results[[15]], bordered = T)
+  output$table_goal16 <- renderTable(top_countries_by_goal_results[[16]], bordered = T)
+  output$table_goal17 <- renderTable(top_countries_by_goal_results[[17]], bordered = T)
+}
+
+```
+
+# Run the Dashboard APP
+ 
+```{r}
+shinyApp(ui, server)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

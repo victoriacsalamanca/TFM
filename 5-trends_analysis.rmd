@@ -1,5 +1,5 @@
 ---
-title: "Draft TFM"
+title: "Simple Trends Analysis"
 author: "Victoria Costas"
 date: "`r Sys.Date()`"
 output:
@@ -87,7 +87,7 @@ data <- average_by_goal_year %>% filter(year >= 2010)
 plot1 <- data %>% filter(indicator == "ind1") %>% 
   ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
   geom_line(size = 1.5) +
-  labs(title = "Progress of Goal 1", x = "Year", y = "Average Value") +
+  labs(title = "Progress of Goal 1 (No Poverty)", x = "Year", y = "Average Value") +
   theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold"),
         axis.title = element_text(size = 12),
@@ -100,7 +100,7 @@ plot1 <- data %>% filter(indicator == "ind1") %>%
 plot2 <- data %>% filter(indicator == "ind2") %>% 
   ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
   geom_line(size = 1.5) +
-  labs(title = "Progress of Goal 2", x = "Year", y = "Average Value") +
+  labs(title = "Progress of Goal 2 (Zero Hunger)", x = "Year", y = "Average Value") +
   theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold"),
         axis.title = element_text(size = 12),
@@ -114,7 +114,7 @@ plot2 <- data %>% filter(indicator == "ind2") %>%
 plot3 <- data %>% filter(indicator == "ind3") %>% 
   ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
   geom_line(size = 1.5) +
-  labs(title = "Progress of Goal 3", x = "Year", y = "Average Value") +
+  labs(title = "Progress of Goal 3 (Good Health and Well-being)", x = "Year", y = "Average Value") +
   theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold"),
         axis.title = element_text(size = 12),
@@ -128,7 +128,7 @@ plot3 <- data %>% filter(indicator == "ind3") %>%
 plot4 <- data %>% filter(indicator == "ind4") %>% 
   ggplot(aes(x = year, y = Average_Value, color = geo_time, group = geo_time)) +
   geom_line(size = 1.5) +
-  labs(title = "Progress of Goal 4", x = "Year", y = "Average Value") +
+  labs(title = "Progress of Goal 4 (Quality Education)", x = "Year", y = "Average Value") +
   theme_minimal() +
   theme(plot.title = element_text(size = 16, face = "bold"),
         axis.title = element_text(size = 12),
@@ -335,12 +335,6 @@ plot17
 
 
 ```{r}
-# summary_stats <- average_by_goal_year %>%
-#   group_by(indicator, geo_time) %>%
-#   summarise(Average_Value = mean(Average_Value, na.rm = TRUE, Median_Value = median(Average_Value, na.rm = TRUE)))
-# 
-# print(summary_stats)
-
 summary_stats_2010 <- data %>%
   group_by(indicator, geo_time) %>%
   summarise(Average_Value = mean(Average_Value, na.rm = TRUE, Median_Value = median(Average_Value, na.rm = TRUE)))
@@ -373,9 +367,7 @@ growth <- data %>%
 
 print(growth)
 
-#########Problems with scaling 
-
-growth_plot_es <- growth_2010 %>% filter(geo_time == "ES") %>% 
+growth_plot_es <- growth %>% filter(geo_time == "ES") %>% 
   ggplot(aes(x = year, y = Growth_Rate, color = indicator, group = interaction(indicator, geo_time))) +
   geom_line() +
   geom_smooth(se = FALSE) +
@@ -391,49 +383,7 @@ growth_plot_es <- growth_2010 %>% filter(geo_time == "ES") %>%
 
 growth_plot_es
 
-###################trying different things
-growth_plot_es <- growth_2010 %>% filter(geo_time == "ES") %>% 
-  ggplot(aes(x = year, y = Growth_Rate, group = interaction(indicator, geo_time))) +
-  geom_line(color = "grey") +
-  geom_smooth(se = FALSE, color = "grey") +
-  geom_line(aes(color = indicator, linewidth = ifelse(indicator == "ind11", 1, 0.5)), alpha = 0.5) +
-  geom_smooth(aes(color = indicator, linewidth = ifelse(indicator == "ind11", 1, 0.5)), se = FALSE, alpha = 0.5) +
-  labs(title = "Growth Rate by Indicator and Year",
-       x = "Year",
-       y = "Growth Rate",
-       color = "Indicator") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 16, face = "bold"),
-        axis.title = element_text(size = 12),
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-        axis.text.y = element_text(size = 10)) +
-  scale_color_manual(values = c("grey", "grey", "red", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey")) +
-  scale_size_identity()
-
-growth_plot_es <- growth %>% filter(geo_time == "ES") %>% 
-  ggplot(aes(x = year, y = Growth_Rate, group = interaction(indicator, geo_time))) +
-  geom_line(color = "grey") +
-  geom_smooth(se = FALSE, color = "grey") +
-  geom_line(data = . %>% filter(indicator == "ind1"),
-            aes(color = indicator), size = 1, alpha = 0.5) +
-  geom_smooth(data = . %>% filter(indicator == "ind1"),
-              aes(color = indicator), se = FALSE, size = 1, alpha = 0.5) +
-  labs(title = "Growth Rate by Indicator and Year",
-       x = "Year",
-       y = "Growth Rate",
-       color = "Indicator") +
-  theme_minimal() +
-  theme(plot.title = element_text(size = 16, face = "bold"),
-        axis.title = element_text(size = 12),
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-        axis.text.y = element_text(size = 10)) +
-  scale_color_manual(values = c("red", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey", "grey")) +
-  scale_size_identity()
-
-
-#############Germany
-
-growth_plot_de <- growth_2010 %>% filter(geo_time == "DE") %>% 
+growth_plot_de <- growth %>% filter(geo_time == "DE") %>% 
   ggplot(aes(x = year, y = Growth_Rate, color = indicator, group = interaction(indicator, geo_time))) +
   geom_line() +
   geom_smooth(se = FALSE) +
@@ -448,8 +398,6 @@ growth_plot_de <- growth_2010 %>% filter(geo_time == "DE") %>%
         axis.text.y = element_text(size = 10))
 
 growth_plot_de
-
-
 ```
 
 

@@ -1,9 +1,19 @@
 # TFM
+The following files contain the essential code to run a factor, cluster and trend analysis of the United Nations Sustainable Development Goals implemented in 2015. This is part of the Master Thesis of the course in Computational Social Sciences of the UC3M. Data is available in Eurostat database web page. 
 
-In the repository you will find a folder named "data" with all the databases needed for all the necessary executions. 
+## Installation
+- Prerequisites to have `R` and an `rmd` reader installed. 
+- Then `git clone` the [TFM repository](https://github.com/victoriacsalamanca/TFM.git).
+- Install dependencies (`install_dependencies.R`)
 
-The files are named with a number and the title, so they will be executed in the order that the numbers imply, first the file 1-..., then the file 2-... and so on. 
+## Usage
+El modo de uso requiere la realización de los siguientes pasos en el orden establecido. la primera vez que se ejecutan todos los ficheros ha de hacerse en el orden que se marca en su nombre. 
+1. Se ejecuta `1-preprocessing-clustering.rmd`que proporciona la base de datos necesaria para continuar con los análisis.
+2. Se ejecuta `2-preprocessing-trends.rmd` que proporciona la base de datos necesaria para realizar el análisis de tendencias.
+3. Se ejecuta `3-clustering_analysis.rmd` en el que se realiza y sintetiza el analisis de clústeres de los datos preprocesados. 
+4. Se ejecuta `4-factor_analysis.rmd` en el que se realiza y sintetiza el analisis de factores de los datos preprocesados. 
+5. Se ejecuta `5-trends_analysis.rmd` este fichero supone un complemento al dashboard y a los ficheros anteriores, genera gráficos que se muestran en el Dashboard
+6. Se ejecuta `6-APP.rmd` que genera el Dashboard final y reune toda la información extraída de los analisis. 
 
-The first two files provide the code necessary to obtain the databases with which we will finally work, so it is essential to execute files number 1 and 2. 
-
-Except for files 1 and 2, the rest are unfinished so you will find comments on things to change, modify, delete, etc. 
+## Example
+![Screenshot of the main page of the Dashboard](www/screenshot.png)
