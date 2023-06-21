@@ -7,13 +7,13 @@ The following files contain the essential code to run a factor, cluster and tren
 - Install dependencies (`install_dependencies.R`)
 
 ## Usage
-El modo de uso requiere la realización de los siguientes pasos en el orden establecido. la primera vez que se ejecutan todos los ficheros ha de hacerse en el orden que se marca en su nombre. 
-1. Se ejecuta `1-preprocessing-clustering.rmd`que proporciona la base de datos necesaria para continuar con los análisis.
-2. Se ejecuta `2-preprocessing-trends.rmd` que proporciona la base de datos necesaria para realizar el análisis de tendencias.
-3. Se ejecuta `3-clustering_analysis.rmd` en el que se realiza y sintetiza el analisis de clústeres de los datos preprocesados. 
-4. Se ejecuta `4-factor_analysis.rmd` en el que se realiza y sintetiza el analisis de factores de los datos preprocesados. 
-5. Se ejecuta `5-trends_analysis.rmd` este fichero supone un complemento al dashboard y a los ficheros anteriores, genera gráficos que se muestran en el Dashboard
-6. Se ejecuta `6-APP.rmd` que genera el Dashboard final y reune toda la información extraída de los analisis. 
+The following steps are required to be performed in the order given. The first time all the files are run, they must be run in the order given in their name. 
+1. Run `1-preprocessing-clustering.rmd` which provides the database needed to continue with the analysis.
+2. Run `2-preprocessing-trends.rmd` which provides the database needed to perform the trend analysis.
+3. Run `3-clustering_analysis.rmd` which performs and synthesises the clustering analysis of the preprocessed data. 
+4. Run `4-factor_analysis.rmd` in which the factor analysis of the preprocessed data is performed and synthesised. 
+5. Run `5-trends_analysis.rmd` this file is a complement to the dashboard and the previous files, it generates graphs that are shown in the Dashboard.
+6. Run `6-APP.rmd` which generates the final Dashboard and gathers all the information extracted from the analyses.
 
 ## Example
 ![Screenshot of the main page of the Dashboard](www/screenshot.png)
